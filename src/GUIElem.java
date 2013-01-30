@@ -79,4 +79,69 @@ abstract public class GUIElem {
 	
 	//skillPanel items
 	protected HashMap<String, JTextField> addChar_SkillFields;
+	
+	protected void addStunt_AddChar() {
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridy = addChar_stuntGridY;
+		c.gridx = 0;
+		JTextField temp = new JTextField(20);
+		
+		addChar_stuntManager.add(temp);
+		addChar_stuntPanel.add(temp,c);
+		c.gridx+=2;
+		temp = new JTextField(3);
+		addChar_stuntManager.add(temp);
+		addChar_stuntPanel.add(temp,c);
+		c.gridx=0;
+		temp = new JTextField(20);
+		c.gridy++;
+		
+		addChar_stuntGridY = c.gridy;
+		c.gridx = 0;
+		c.gridwidth = 3;
+		c.weighty = 0.1;
+		c.anchor = GridBagConstraints.FIRST_LINE_END;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		addChar_stuntPanel.add(addChar_stuntAdd,c);
+		addCharWindow.setVisible(true);
+	}
+
+	protected void addAspect_AddChar() {
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = addChar_aspectGridY;
+		
+		JTextField aspectField = new JTextField(30);
+		aspectField.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		JTextArea aspectArea = new JTextArea(10,50);
+		aspectArea.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		addChar_aspectPanel.add(new JLabel("Aspect Name:  "),c);
+		c.gridx++;
+		aspectField.setMinimumSize(aspectField.getPreferredSize());
+		addChar_aspectPanel.add(aspectField, c);
+		c.gridwidth = 2;
+		c.gridx = 0;
+		c.gridy++;
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		c.fill = GridBagConstraints.BOTH;
+		aspectArea.setMinimumSize(aspectArea.getPreferredSize());
+		addChar_aspectPanel.add(aspectArea, c);
+		c.gridwidth = 1;
+		c.anchor = GridBagConstraints.NONE;
+		c.fill = GridBagConstraints.NONE;
+		c.gridy++;
+		addChar_aspectGridY = c.gridy;
+		c.gridx++;
+		c.weighty = 1;
+		c.weightx = 1;
+		c.anchor = GridBagConstraints.FIRST_LINE_END;
+		addChar_aspectPanel.add(addChar_aspectAdd,c);
+		
+		addChar_aspectFieldManager.add(aspectField);
+		addChar_aspectAreaManager.add(aspectArea);
+		
+		addCharWindow.setVisible(true);
+	}
 }

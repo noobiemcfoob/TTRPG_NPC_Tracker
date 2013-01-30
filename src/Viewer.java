@@ -1,13 +1,14 @@
 import java.util.*;
-
+import java.util.Map.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 
-public class Viewer extends GUIElem implements Runnable, ActionListener{
+public class Viewer extends GUIElem implements Runnable, ActionListener, MouseListener{
 
 	/**
 	 * Main Method
@@ -32,11 +33,12 @@ public class Viewer extends GUIElem implements Runnable, ActionListener{
 	/*
 	 * Class Variables
 	 */
-	static public ArrayList<Character> chars;
+	static public HashMap<Character,JPanel> chars;
 
 	
 	public Viewer(){
 		readSkills();
+		loadCharacters();
 		buildViewer();
 		buildAddCharWindow();
 		//Separate into thread
@@ -64,108 +66,149 @@ public class Viewer extends GUIElem implements Runnable, ActionListener{
 			addStunt_AddChar();
 		}else if(ae.getSource() == createChar){
 			captureCharacter();
+			addCharWindow.setVisible(false);
 		}
 	}
 	
 	private void captureCharacter() {
-		System.out.println("General:");
-		System.out.println(addChar_nameField.getText());
-		System.out.println(addChar_allyField.getText());
-		System.out.println(addChar_skillCapField.getText());
-		System.out.println(addChar_skillPointsField.getText());
-		System.out.println(addChar_typeGroup.getSelection().getActionCommand());
-		System.out.println(addChar_conceptField.getText());
-		System.out.println(addChar_refreshField.getText());
-		System.out.println("Revisit? " + addChar_revisitBox.isSelected());
-		System.out.println();
+		Character newChar = new Character();
 		
-		System.out.println("Stunts");
+		//Set General Info
+		newChar.setName(addChar_nameField.getText());
+		newChar.setAllegiance(addChar_allyField.getText());
+		try{
+			newChar.setSkillCap(Integer.parseInt(addChar_skillCapField.getText()));
+		}catch (Exception e){
+			newChar.setSkillCap(5);
+		}
+		try{
+			newChar.setSkillPoints(Integer.parseInt(addChar_skillCapField.getText()));
+		}catch (Exception e){
+			newChar.setSkillPoints(0);
+		}
+		
+		try{
+			newChar.setPC((addChar_typeGroup.getSelection().getActionCommand()=="PC")?true:false);
+		}catch (Exception e){
+			newChar.setPC(false);
+		}
+		try{
+			newChar.setRefresh(Integer.parseInt(addChar_refreshField.getText()));
+		}catch (Exception e){
+			newChar.setRefresh(7);
+		}
+		newChar.setRevisit(addChar_revisitBox.isSelected());
+
+		
+		//Set Stunts
 		for(int i = 0;i<addChar_stuntManager.size();i+=2){
-			System.out.println("Stunt Name: "+addChar_stuntManager.get(i).getText());
-			System.out.println("Stunt Cost: "+addChar_stuntManager.get(i+1).getText()+"\n");
+			try{
+				newChar.addStunt(addChar_stuntManager.get(i).getText(), "", Integer.parseInt(addChar_stuntManager.get(i+1).getText()));
+			}catch (Exception e){
+				newChar.addStunt(addChar_stuntManager.get(i).getText(), "", 0);
+			}
 		}
-		System.out.println("\n");
 		
-		System.out.println("Aspects");
+		//Set Stunts
 		for(int i = 0;i<addChar_aspectFieldManager.size();i++){
-			System.out.println("Aspect Name: "+addChar_aspectFieldManager.get(i).getText());
-			System.out.println("Aspect Note: "+addChar_aspectAreaManager.get(i).getText()+"\n");
+			newChar.addAspect(addChar_aspectFieldManager.get(i).getText(), addChar_aspectAreaManager.get(i).getText());
 		}
-		System.out.println("\n");
 		
-		System.out.println("Skills");
+		//Set Skills
 		for(String skill : allSkills){
-			System.out.println("Skill Name: " + skill);
-			System.out.println("Skill Value: " + addChar_SkillFields.get(skill).getText()+"\n");
+			try{
+				newChar.setSkill(skill, Integer.parseInt(addChar_SkillFields.get(skill).getText()));
+			}catch (Exception e){
+				newChar.setSkill(skill, 0);
+			}
 		}
-		System.out.println("\n");
+		
+		//Set Inventory
+		newChar.setInventory(addChar_inventory.getText());
+		
+		chars.put(newChar, new JPanel());
+		createCombatCharacterPanel(newChar);
+		addCharacterPanel(newChar);
+		saveCharacters();
 	}
 
-	private void addStunt_AddChar() {
+	private void saveCharacters() {
+		try{
+			ObjectOutputStream saveOOS = new ObjectOutputStream(new FileOutputStream("characters.ser"));
+			saveOOS.writeObject(chars);
+			saveOOS.close();
+		}catch (Exception e){
+			System.out.println("Problem saving characters.ser: " + e);
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void loadCharacters() {
+		try{
+			ObjectInputStream OIS = new ObjectInputStream(new FileInputStream("characters.ser"));
+			if(OIS.readObject() instanceof Character){
+				chars = (HashMap<Character,JPanel>) OIS.readObject();
+				OIS.close();
+			}else{
+				OIS.close();
+				throw new IOException();
+			}
+		}catch (Exception e){
+			System.out.println("Problem loading characters.ser: " + e);
+			System.out.println("Generating new list");
+			chars = new HashMap<Character,JPanel>();
+		}
+	}
+
+	private void createCombatCharacterPanel(Character newChar){
+		chars.remove(newChar);
+		JPanel newPanel = new JPanel();
 		GridBagConstraints c = new GridBagConstraints();
-		c.gridy = addChar_stuntGridY;
 		c.gridx = 0;
-		JTextField temp = new JTextField(20);
+		c.gridy = 0;
 		
-		addChar_stuntManager.add(temp);
-		addChar_stuntPanel.add(temp,c);
-		c.gridx+=2;
-		temp = new JTextField(3);
-		addChar_stuntManager.add(temp);
-		addChar_stuntPanel.add(temp,c);
+		newPanel.addMouseListener(this);
+		
+		newPanel.setLayout(new GridBagLayout());
+		newPanel.add(new JLabel(newChar.getName()),c);
+		c.gridy++;
+		
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		newPanel.add(new JLabel("Refresh:  "),c);
+		c.gridx++;
+		newPanel.add(new JLabel(newChar.getRefresh().toString()),c);
+		c.gridx = 0;
+		c.gridy++;
+		
+		newPanel.add(new JLabel(newChar.getAttackSkill()+": "),c);
+		c.gridx++;
+		newPanel.add(new JLabel(newChar.getSkill(newChar.getAttackSkill().toUpperCase()).toString()),c);
+		c.gridx++;
+		newPanel.add(new JLabel("  "),c);
+		c.gridx++;
+		newPanel.add(new JTextField(2),c);
 		c.gridx=0;
-		temp = new JTextField(20);
 		c.gridy++;
 		
-		addChar_stuntGridY = c.gridy;
-		c.gridx = 0;
-		c.gridwidth = 3;
-		c.weighty = 0.1;
-		c.anchor = GridBagConstraints.FIRST_LINE_END;
-		c.fill = GridBagConstraints.HORIZONTAL;
-		addChar_stuntPanel.add(addChar_stuntAdd,c);
-		addCharWindow.setVisible(true);
-	}
-
-	private void addAspect_AddChar() {
-		GridBagConstraints c = new GridBagConstraints();
-		c.gridx = 0;
-		c.gridy = addChar_aspectGridY;
-		
-		JTextField aspectField = new JTextField(30);
-		aspectField.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-		JTextArea aspectArea = new JTextArea(10,50);
-		aspectArea.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-		
-		c.anchor = GridBagConstraints.FIRST_LINE_START;
-		addChar_aspectPanel.add(new JLabel("Aspect Name:  "),c);
-		c.gridx++;
-		aspectField.setMinimumSize(aspectField.getPreferredSize());
-		addChar_aspectPanel.add(aspectField, c);
-		c.gridwidth = 2;
-		c.gridx = 0;
-		c.gridy++;
-		c.anchor = GridBagConstraints.FIRST_LINE_START;
-		c.fill = GridBagConstraints.BOTH;
-		aspectArea.setMinimumSize(aspectArea.getPreferredSize());
-		addChar_aspectPanel.add(aspectArea, c);
-		c.gridwidth = 1;
-		c.anchor = GridBagConstraints.NONE;
-		c.fill = GridBagConstraints.NONE;
-		c.gridy++;
-		addChar_aspectGridY = c.gridy;
-		c.gridx++;
-		c.weighty = 1;
 		c.weightx = 1;
-		c.anchor = GridBagConstraints.FIRST_LINE_END;
-		addChar_aspectPanel.add(addChar_aspectAdd,c);
+		c.weighty = 1;
+		newPanel.add(new JLabel(newChar.getDefenseSkill()+": "),c);
+		c.gridx++;
+		newPanel.add(new JLabel(newChar.getSkill(newChar.getDefenseSkill().toUpperCase()).toString()),c);
+		c.gridx++;
+		c.ipadx=20;
+		newPanel.add(new JTextField(2),c);
+		c.gridx=0;
+		c.gridy++;
 		
-		addChar_aspectFieldManager.add(aspectField);
-		addChar_aspectAreaManager.add(aspectArea);
-		
-		addCharWindow.setVisible(true);
+		chars.put(newChar, newPanel);
 	}
-
+	
+	private void addCharacterPanel(Character newChar){
+		charPanel.add(chars.get(newChar));
+		mainWindow.setVisible(true);
+	}
+	
 	private void buildAddCharWindow(){
 		JPanel tempPanel;
 		
@@ -372,15 +415,49 @@ public class Viewer extends GUIElem implements Runnable, ActionListener{
 		mainWindow.getContentPane().add(charPanel);
 		
 		//Set size of window and display
+		mainWindow.setSize(800,800);
 		mainWindow.setExtendedState(Frame.MAXIMIZED_BOTH);
 		mainWindow.setVisible(true);
+		
+		for(Character loadedChar : chars.keySet()){
+			addCharacterPanel(loadedChar);
+			System.out.println("Creating panel for: " + loadedChar.getName());
+			System.out.println("\t"+loadedChar.getRefresh());
+		}
 	}
 	
 	private void readSkills(){
 		try{
 			allSkills = new ArrayList<String>(Files.readAllLines(Paths.get("Skills.txt"),StandardCharsets.UTF_8));
+			for (int i = 0; i<allSkills.size(); i++){
+				allSkills.set(i,allSkills.get(i).toUpperCase());
+			}
 		}catch (Exception e){
 			return;
 		}
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent arg0) {}
+
+	@Override
+	public void mouseEntered(MouseEvent arg0) {}
+
+	@Override
+	public void mouseExited(MouseEvent arg0) {}
+
+	@Override
+	public void mousePressed(MouseEvent arg0) {}
+
+	@Override
+	public void mouseReleased(MouseEvent me) {
+		JPanel source = (JPanel) me.getSource();
+		Character charSource = new Character();
+		for(Entry<Character,JPanel> entry : chars.entrySet()){
+			if(source.equals(entry.getValue())){
+				charSource = entry.getKey();
+			}
+		}
+		System.out.println(charSource.getName() + " was clicked!");
 	}
 }

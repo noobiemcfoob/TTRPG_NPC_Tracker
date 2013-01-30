@@ -1,21 +1,37 @@
 import java.util.*;
+import java.io.Serializable;
 
-public class Character {
+public class Character implements Serializable{
+	static ArrayList<String> allSkills;
+	
 	private String name;
+	private String allegiance;
+	private String concept;
+	private Integer skillCap;
+	private Integer skillPoints;
+	private boolean pc;
+	private Integer refresh;
+	private boolean revisit;
+	private String inventory;
+	
+	//Combat related variables
+	private String attackSkill = "Weapons";
+	private String defenseSkill = "Athletics";
+	
+	//Social related variables
+	private ArrayList<String> socialSkills = new ArrayList<String>();
 	
 	//Hash table of all skills for a character. "Skill Name" -> Skill Value
 	private HashMap<String,Integer> skills = new HashMap<String,Integer>();
 	
-	//Hash table of all stunts for a character. "Stunt Name" -> "Stund Description"
+	//Hash table of all stunts for a character. "Stunt Name" -> ["Stunt Description","Stunt Cost"]
 	private HashMap<String,ArrayList<String>> stunts = new HashMap<String,ArrayList<String>>();
 	
 	//Vector of all aspects of a character.
-	private HashMap<String,ArrayList<String>> aspects = new HashMap<String,ArrayList<String>>();
+	private HashMap<String,String> aspects = new HashMap<String,String>();
 	
-	public Character(String name)
+	public Character()
 	{
-		this.name = name;
-		
 		for(String skill : Viewer.allSkills){
 			skills.put(skill, 0);
 		}
@@ -29,10 +45,104 @@ public class Character {
 		this.name = name;
 	}
 	
+	public String getAllegiance(){
+		return this.allegiance;
+	}
+	
+	public void setAllegiance(String allegiance){
+		this.allegiance = allegiance;
+	}
+	
+	public String getConcept(){
+		return this.concept;
+	}
+	
+	public void setConcept(String concept){
+		this.concept = concept;
+	}
+	
+	public Integer getSkillCap(){
+		return this.skillCap;
+	}
+	
+	public void setSkillCap(int skillCap){
+		this.skillCap = skillCap;
+	}
+	
+	public Integer getSkillPoints(){
+		return this.skillPoints;
+	}
+	
+	public void setSkillPoints(int skillPoints){
+		this.skillPoints = skillPoints;
+	}
+	
+	public boolean getPC(){
+		return this.pc;
+	}
+	
+	public void setPC(boolean pc){
+		this.pc = pc;
+	}
+	
+	public Integer getRefresh(){
+		return this.refresh;
+	}
+	
+	public void setRefresh(int refresh){
+		this.refresh = refresh;
+	}
+	
+	public boolean getRevisit(){
+		return this.revisit;
+	}
+	
+	public void setRevisit(boolean revisit){
+		this.revisit = revisit;
+	}
+	
+	public String getInventory(){
+		return this.inventory;
+	}
+	
+	public void setInventory(String inventory){
+		this.inventory = inventory;
+	}
+	
+	public void appendToInventory(String inventory){
+		this.inventory = this.inventory + "\n" + inventory;
+	}
+
+	public String getAttackSkill(){
+		return attackSkill;
+	}
+	
+	public void setAttackSkill(String skill){
+		this.attackSkill = skill;
+	}
+	
+	public String getDefenseSkill(){
+		return defenseSkill;
+	}
+	
+	public void setDefenseSkill(String skill){
+		this.defenseSkill = skill;
+	}
+	
+	public ArrayList<String> getSocialSkills(){
+		return socialSkills;
+	}
+	
+	public void setSocialSkills(ArrayList<String> skills){
+		this.socialSkills = skills;
+	}
+	
+	public void addSocialSkill(String skill){
+		this.socialSkills.add(skill);
+	}
+	
 	public Integer getSkill(String skillName){
-		//Integer skillValue = 0;
 		//TODO Add error checking
-		
 		return skills.get(skillName);
 	}
 	
@@ -65,14 +175,20 @@ public class Character {
 	}
 	
 	public boolean addAspect(String aspect){
-		aspects.put(aspect, new ArrayList<String>());
+		aspects.put(aspect, "");
+		
+		return true;
+	}
+	
+	public boolean addAspect(String aspect, String description){
+		aspects.put(aspect, description);
 		
 		return true;
 	}
 	
 	public boolean addAspectNote(String aspect, String description){
 		try{
-			aspects.get(aspect).add(description);
+			aspects.put(aspect, aspects.get(aspect)+"\n"+description);
 		}catch (Exception e){
 			System.out.println("Aspect does not exist");
 			return false;
@@ -81,7 +197,7 @@ public class Character {
 		return true;
 	}
 	
-	public ArrayList<String> getAspectNote(String aspect){
+	public String getAspectNote(String aspect){
 		try{
 			return aspects.get(aspect);
 		}catch (Exception e){
@@ -114,9 +230,9 @@ public class Character {
 		}
 	}
 	
-	public boolean addStunt(String stunt, String description){
+	public boolean addStunt(String stunt, String description, Integer cost){
 		try{
-			stunts.put(stunt,new ArrayList<String>( Arrays.asList( new String[] {description})));
+			stunts.put(stunt,new ArrayList<String>( Arrays.asList( new String[] {description, cost.toString()})));
 			return true;
 		}catch (Exception e){
 			return false;
