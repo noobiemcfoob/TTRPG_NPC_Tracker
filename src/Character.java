@@ -2,6 +2,8 @@ import java.util.*;
 import java.io.Serializable;
 
 public class Character implements Serializable{
+	private static final long serialVersionUID = 42L;
+	
 	static ArrayList<String> allSkills;
 	
 	private String name;
@@ -19,7 +21,14 @@ public class Character implements Serializable{
 	private String defenseSkill = "Athletics";
 	
 	//Social related variables
-	private ArrayList<String> socialSkills = new ArrayList<String>();
+	private ArrayList<String> socialSkills = new ArrayList<String>(Arrays.asList(
+		"Performance",
+		"Deceit",
+		"Empathy",
+		"Intimidation",
+		"Presence",
+		"Rapport"
+	));
 	
 	//Hash table of all skills for a character. "Skill Name" -> Skill Value
 	private HashMap<String,Integer> skills = new HashMap<String,Integer>();
@@ -226,6 +235,15 @@ public class Character implements Serializable{
 			return stunts.get(stunt);
 		}catch (Exception e){
 			System.out.println("Stunt does not exist");
+			return null;
+		}
+	}
+	
+	public Integer getStuntCost(String stunt){
+		try{
+			return Integer.parseInt(stunts.get(stunt).get(1));
+		}catch (Exception e){
+			System.out.println("Stunt or cost does not exist");
 			return null;
 		}
 	}

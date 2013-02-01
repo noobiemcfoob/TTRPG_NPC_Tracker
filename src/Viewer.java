@@ -7,6 +7,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import org.yaml.snakeyaml.Yaml;
 
 public class Viewer extends GUIElem implements Runnable, ActionListener, MouseListener{
 
@@ -34,6 +35,8 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	 * Class Variables
 	 */
 	static public HashMap<Character,JPanel> chars;
+	private Character charPasser;
+	Yaml yaml = new Yaml();
 
 	
 	public Viewer(){
@@ -57,16 +60,40 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	@Override
 	public void actionPerformed(ActionEvent ae) {
 		if(ae.getSource() == newChar){
-			addCharWindow.setVisible(true);
-			addCharWindow.requestFocus();
-		}else if(ae.getSource() == addChar_aspectAdd){
+			charWindow.setVisible(true);
+			charWindow.requestFocus();
+		}else if(ae.getSource() == char_aspectAdd){
 			addAspect_AddChar();
-		}
-		else if(ae.getSource() == addChar_stuntAdd){
+		}else if(ae.getSource() == char_stuntAdd){
 			addStunt_AddChar();
 		}else if(ae.getSource() == createChar){
 			captureCharacter();
-			addCharWindow.setVisible(false);
+			charWindow.setVisible(false);
+		}else if(ae.getSource() == updateChar){
+			captureCharacter(charPasser);
+			charWindow.setVisible(false);
+		}else if(ae.getSource() == comRButton){
+			charPanel = new JPanel();
+			charPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+			charPanel.setBackground(Color.WHITE);
+			mainWindow.getContentPane().add(charPanel,"Center");
+			
+			for(Character loadedChar : chars.keySet()){
+				createCombatCharacterPanel(loadedChar);
+				characterPanel(loadedChar);
+			}
+			mainWindow.setVisible(true);
+		}else if(ae.getSource() == socRButton){
+			charPanel = new JPanel();
+			charPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+			charPanel.setBackground(Color.WHITE);
+			mainWindow.getContentPane().add(charPanel,"Center");
+			
+			for(Character loadedChar : chars.keySet()){
+				createSocialCharacterPanel(loadedChar);
+				characterPanel(loadedChar);
+			}
+			mainWindow.setVisible(true);
 		}
 	}
 	
@@ -74,68 +101,141 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		Character newChar = new Character();
 		
 		//Set General Info
-		newChar.setName(addChar_nameField.getText());
-		newChar.setAllegiance(addChar_allyField.getText());
+		newChar.setName(char_nameField.getText());
+		newChar.setAllegiance(char_allyField.getText());
+		newChar.setConcept(char_conceptField.getText());
 		try{
-			newChar.setSkillCap(Integer.parseInt(addChar_skillCapField.getText()));
+			newChar.setSkillCap(Integer.parseInt(char_skillCapField.getText()));
 		}catch (Exception e){
 			newChar.setSkillCap(5);
 		}
 		try{
-			newChar.setSkillPoints(Integer.parseInt(addChar_skillCapField.getText()));
+			newChar.setSkillPoints(Integer.parseInt(char_skillCapField.getText()));
 		}catch (Exception e){
 			newChar.setSkillPoints(0);
 		}
 		
 		try{
-			newChar.setPC((addChar_typeGroup.getSelection().getActionCommand()=="PC")?true:false);
+			newChar.setPC((char_typeGroup.getSelection().getActionCommand()=="PC")?true:false);
 		}catch (Exception e){
 			newChar.setPC(false);
 		}
 		try{
-			newChar.setRefresh(Integer.parseInt(addChar_refreshField.getText()));
+			newChar.setRefresh(Integer.parseInt(char_refreshField.getText()));
 		}catch (Exception e){
 			newChar.setRefresh(7);
 		}
-		newChar.setRevisit(addChar_revisitBox.isSelected());
+		newChar.setRevisit(char_revisitBox.isSelected());
 
 		
 		//Set Stunts
-		for(int i = 0;i<addChar_stuntManager.size();i+=2){
-			try{
-				newChar.addStunt(addChar_stuntManager.get(i).getText(), "", Integer.parseInt(addChar_stuntManager.get(i+1).getText()));
-			}catch (Exception e){
-				newChar.addStunt(addChar_stuntManager.get(i).getText(), "", 0);
+		for(int i = 0;i<char_stuntManager.size();i+=2){
+			if(!char_stuntManager.get(i).getText().equals("")){
+				try{
+					newChar.addStunt(char_stuntManager.get(i).getText(), "", Integer.parseInt(char_stuntManager.get(i+1).getText()));
+				}catch (Exception e){
+					newChar.addStunt(char_stuntManager.get(i).getText(), "", 0);
+				}
 			}
 		}
 		
 		//Set Stunts
-		for(int i = 0;i<addChar_aspectFieldManager.size();i++){
-			newChar.addAspect(addChar_aspectFieldManager.get(i).getText(), addChar_aspectAreaManager.get(i).getText());
+		for(int i = 0;i<char_aspectFieldManager.size();i++){
+			if(!char_aspectFieldManager.get(i).getText().equals("")){
+				newChar.addAspect(char_aspectFieldManager.get(i).getText(), char_aspectAreaManager.get(i).getText());
+			}
 		}
 		
 		//Set Skills
 		for(String skill : allSkills){
 			try{
-				newChar.setSkill(skill, Integer.parseInt(addChar_SkillFields.get(skill).getText()));
+				newChar.setSkill(skill, Integer.parseInt(char_SkillFields.get(skill).getText()));
 			}catch (Exception e){
 				newChar.setSkill(skill, 0);
 			}
 		}
 		
 		//Set Inventory
-		newChar.setInventory(addChar_inventory.getText());
+		newChar.setInventory(char_inventory.getText());
 		
 		chars.put(newChar, new JPanel());
 		createCombatCharacterPanel(newChar);
-		addCharacterPanel(newChar);
+		characterPanel(newChar);
 		saveCharacters();
 	}
 
+	private void captureCharacter(Character newChar) {
+		chars.remove(newChar);
+		
+		//Set General Info
+		newChar.setName(char_nameField.getText());
+		newChar.setAllegiance(char_allyField.getText());
+		newChar.setConcept(char_conceptField.getText());
+		try{
+			newChar.setSkillCap(Integer.parseInt(char_skillCapField.getText()));
+		}catch (Exception e){
+			newChar.setSkillCap(5);
+		}
+		try{
+			newChar.setSkillPoints(Integer.parseInt(char_skillCapField.getText()));
+		}catch (Exception e){
+			newChar.setSkillPoints(0);
+		}
+		
+		try{
+			newChar.setPC((char_typeGroup.getSelection().getActionCommand()=="PC")?true:false);
+		}catch (Exception e){
+			newChar.setPC(false);
+		}
+		try{
+			newChar.setRefresh(Integer.parseInt(char_refreshField.getText()));
+		}catch (Exception e){
+			newChar.setRefresh(7);
+		}
+		newChar.setRevisit(char_revisitBox.isSelected());
+
+		
+		//Set Stunts
+		for(int i = 0;i<char_stuntManager.size();i+=2){
+			if(!char_stuntManager.get(i).getText().equals("")){
+				System.out.println("New stunt: "+char_stuntManager.get(i).getText());
+				try{
+					newChar.addStunt(char_stuntManager.get(i).getText(), "", Integer.parseInt(char_stuntManager.get(i+1).getText()));
+				}catch (Exception e){
+					newChar.addStunt(char_stuntManager.get(i).getText(), "", 0);
+				}
+			}
+		}
+		
+		//Set Stunts
+		for(int i = 0;i<char_aspectFieldManager.size();i++){
+			if(!char_aspectFieldManager.get(i).getText().equals("")){
+				newChar.addAspect(char_aspectFieldManager.get(i).getText(), char_aspectAreaManager.get(i).getText());
+			}
+		}
+		
+		//Set Skills
+		for(String skill : allSkills){
+			try{
+				newChar.setSkill(skill, Integer.parseInt(char_SkillFields.get(skill).getText()));
+			}catch (Exception e){
+				newChar.setSkill(skill, 0);
+			}
+		}
+		
+		//Set Inventory
+		newChar.setInventory(char_inventory.getText());
+		
+		chars.put(newChar, new JPanel());
+		createCombatCharacterPanel(newChar);
+		characterPanel(newChar);
+		saveCharacters();
+	}
+	
 	private void saveCharacters() {
 		try{
 			ObjectOutputStream saveOOS = new ObjectOutputStream(new FileOutputStream("characters.ser"));
-			saveOOS.writeObject(chars);
+			saveOOS.writeObject(new ArrayList<Character>(chars.keySet()));
 			saveOOS.close();
 		}catch (Exception e){
 			System.out.println("Problem saving characters.ser: " + e);
@@ -146,13 +246,12 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	private void loadCharacters() {
 		try{
 			ObjectInputStream OIS = new ObjectInputStream(new FileInputStream("characters.ser"));
-			if(OIS.readObject() instanceof Character){
-				chars = (HashMap<Character,JPanel>) OIS.readObject();
-				OIS.close();
-			}else{
-				OIS.close();
-				throw new IOException();
+			ArrayList<Character> loadedChars = (ArrayList<Character>)OIS.readObject();
+			chars = new HashMap<Character,JPanel>();
+			for(Character loadedChar : loadedChars){
+				chars.put(loadedChar, new JPanel());
 			}
+			OIS.close();
 		}catch (Exception e){
 			System.out.println("Problem loading characters.ser: " + e);
 			System.out.println("Generating new list");
@@ -167,7 +266,8 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		c.gridx = 0;
 		c.gridy = 0;
 		
-		newPanel.addMouseListener(this);
+		if(newPanel.getMouseListeners().length == 0)
+			newPanel.addMouseListener(this);
 		
 		newPanel.setLayout(new GridBagLayout());
 		newPanel.add(new JLabel(newChar.getName()),c);
@@ -196,7 +296,8 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		c.gridx++;
 		newPanel.add(new JLabel(newChar.getSkill(newChar.getDefenseSkill().toUpperCase()).toString()),c);
 		c.gridx++;
-		c.ipadx=20;
+		newPanel.add(new JLabel("  "),c);
+		c.gridx++;
 		newPanel.add(new JTextField(2),c);
 		c.gridx=0;
 		c.gridy++;
@@ -204,184 +305,452 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		chars.put(newChar, newPanel);
 	}
 	
-	private void addCharacterPanel(Character newChar){
+	private void createSocialCharacterPanel(Character newChar){
+		chars.remove(newChar);
+		JPanel newPanel = new JPanel();
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		
+		if(newPanel.getMouseListeners().length == 0)
+			newPanel.addMouseListener(this);
+		
+		newPanel.setLayout(new GridBagLayout());
+		newPanel.add(new JLabel(newChar.getName()),c);
+		c.gridy++;
+		
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		newPanel.add(new JLabel("Refresh:  "),c);
+		c.gridx++;
+		newPanel.add(new JLabel(newChar.getRefresh().toString()),c);
+		c.gridx = 0;
+		c.gridy++;
+		
+		ArrayList<String> socialSkills = newChar.getSocialSkills();
+		
+		for(String skill : socialSkills){
+			newPanel.add(new JLabel(skill+": "),c);
+			c.gridx++;
+			newPanel.add(new JLabel(newChar.getSkill(skill.toUpperCase()).toString()),c);
+			c.gridx++;
+			newPanel.add(new JLabel("  "),c);
+			c.gridx++;
+			newPanel.add(new JTextField(2),c);
+			c.gridx=0;
+			c.gridy++;
+		}
+
+		chars.put(newChar, newPanel);
+	}
+	
+	private void characterPanel(Character newChar){
 		charPanel.add(chars.get(newChar));
+		if(chars.get(newChar).getMouseListeners().length == 0)
+			chars.get(newChar).addMouseListener(this);
 		mainWindow.setVisible(true);
 	}
 	
 	private void buildAddCharWindow(){
+		charWindow = new JFrame();
 		JPanel tempPanel;
 		
-		addCharWindow.setTitle("Add New Character");
-		addCharWindow.setBackground(Color.GRAY);
+		charWindow.setTitle("Add New Character");
+		charWindow.setBackground(Color.GRAY);
 		
 		//Setting the border for the different areas
-		addChar_skillPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-		addChar_stuntPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-		addChar_aspectPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-		addChar_westPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-		addChar_inventoryPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_skillPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_stuntPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_aspectPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_westPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_inventoryPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 	
 		//Build skillPanel
-		addChar_skillPanel.setLayout(new BoxLayout(addChar_skillPanel, BoxLayout.Y_AXIS));
+		char_skillPanel.setLayout(new BoxLayout(char_skillPanel, BoxLayout.Y_AXIS));
 		
-		addChar_SkillFields = new HashMap<String, JTextField>();
+		char_SkillFields = new HashMap<String, JTextField>();
 		for(String skill : allSkills){
-			addChar_SkillFields.put(skill, new JTextField(3));
+			char_SkillFields.put(skill, new JTextField(3));
 			
 			tempPanel = new JPanel();
 			
 			tempPanel.add(new JLabel(skill));
-			tempPanel.add(addChar_SkillFields.get(skill));
+			tempPanel.add(char_SkillFields.get(skill));
 			
-			addChar_skillPanel.add(tempPanel);
+			char_skillPanel.add(tempPanel);
 		}
-		addCharWindow.getContentPane().add(addChar_skillScroll,"East");
+		charWindow.getContentPane().add(char_skillScroll,"East");
 		
 		//build aspectPanel
-		addChar_aspectFieldManager 	= new ArrayList<JTextField>();
-		addChar_aspectAreaManager	= new ArrayList<JTextArea>();
+		char_aspectFieldManager 	= new ArrayList<JTextField>();
+		char_aspectAreaManager	= new ArrayList<JTextArea>();
 		JTextField aspectField = new JTextField(30);
 		aspectField.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		JTextArea aspectArea = new JTextArea(10,50);
 		aspectArea.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-		addChar_aspectPanel.setLayout(new GridBagLayout());
+		char_aspectPanel.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 0;
 		c.anchor = GridBagConstraints.FIRST_LINE_START;
-		addChar_aspectPanel.add(new JLabel("Aspect Name:  "),c);
+		char_aspectPanel.add(new JLabel("Aspect Name:  "),c);
 		c.gridx++;
 		aspectField.setMinimumSize(aspectField.getPreferredSize());
-		addChar_aspectPanel.add(aspectField, c);
+		char_aspectPanel.add(aspectField, c);
 		c.gridwidth = 2;
 		c.gridx = 0;
 		c.gridy++;
 		c.anchor = GridBagConstraints.FIRST_LINE_START;
 		c.fill = GridBagConstraints.BOTH;
 		aspectArea.setMinimumSize(aspectArea.getPreferredSize());
-		addChar_aspectPanel.add(aspectArea, c);
+		char_aspectPanel.add(aspectArea, c);
 		c.gridwidth = 1;
 		c.anchor = GridBagConstraints.NONE;
 		c.fill = GridBagConstraints.NONE;
 		c.gridy++;
-		addChar_aspectGridY = c.gridy;
+		char_aspectGridY = c.gridy;
 		c.gridx++;
 		c.weighty = 1;
 		c.weightx = 1;
 		c.anchor = GridBagConstraints.FIRST_LINE_END;
-		addChar_aspectAdd.addActionListener(this);
-		addChar_aspectPanel.add(addChar_aspectAdd,c);
+		if(char_aspectAdd.getActionListeners().length == 0){
+			char_aspectAdd.addActionListener(this);
+		}
+		char_aspectPanel.add(char_aspectAdd,c);
 		
-		addChar_aspectFieldManager.add(aspectField);
-		addChar_aspectAreaManager.add(aspectArea);
+		char_aspectFieldManager.add(aspectField);
+		char_aspectAreaManager.add(aspectArea);
 		
-		addCharWindow.getContentPane().add(addChar_aspectScroll);
+		charWindow.getContentPane().add(char_aspectScroll);
 		
 		//build northPanel
-		addChar_northPanel.setLayout(new GridBagLayout());
+		char_northPanel.setLayout(new GridBagLayout());
 		c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 0;
-		addChar_northPanel.add(new JLabel("Character:  "),c);
+		char_northPanel.add(new JLabel("Character:  "),c);
 		c.gridx = 1;
-		addChar_northPanel.add(addChar_nameField,c);
+		char_northPanel.add(char_nameField,c);
 		c.gridx = 2;
-		addChar_northPanel.add(new JLabel("   Allegiance:  "),c);
+		char_northPanel.add(new JLabel("   Allegiance:  "),c);
 		c.gridx = 3;
-		addChar_northPanel.add(addChar_allyField,c);
+		char_northPanel.add(char_allyField,c);
 		c.gridx = 4;
-		addChar_northPanel.add(new JLabel("  Skill Cap:  "),c);
+		char_northPanel.add(new JLabel("  Skill Cap:  "),c);
 		c.gridx = 5;
-		addChar_northPanel.add(addChar_skillCapField,c);
+		char_northPanel.add(char_skillCapField,c);
 		c.gridx = 6;
-		addChar_northPanel.add(new JLabel("  Skill Points:  "),c);
+		char_northPanel.add(new JLabel("  Skill Points:  "),c);
 		c.gridx = 7;
-		addChar_northPanel.add(addChar_skillPointsField,c);
+		char_northPanel.add(char_skillPointsField,c);
 		c.gridy = 1;
 		c.gridx = 0;
-		addChar_typeGroup.add(addChar_pcRButton);
-		addChar_northPanel.add(addChar_pcRButton,c);
-		addChar_pcRButton.addActionListener(this);
-		addChar_pcRButton.setActionCommand("PC");
+		char_typeGroup.add(char_pcRButton);
+		char_northPanel.add(char_pcRButton,c);
+		
+		if(char_pcRButton.getActionListeners().length == 0){
+			char_pcRButton.addActionListener(this);
+		}
+		
+		char_pcRButton.setActionCommand("PC");
 		c.gridx = 1;
-		addChar_typeGroup.add(addChar_npcRButton);
-		addChar_northPanel.add(addChar_npcRButton,c);
-		addChar_npcRButton.addActionListener(this);
-		addChar_npcRButton.setActionCommand("NPC");
+		char_typeGroup.add(char_npcRButton);
+		char_northPanel.add(char_npcRButton,c);
+		
+		if(char_npcRButton.getActionListeners().length == 0){
+			char_npcRButton.addActionListener(this);
+		}
+		
+		char_npcRButton.setActionCommand("NPC");
 		c.gridx = 2;
-		addChar_northPanel.add(new JLabel("  Concept:  "),c);
+		char_northPanel.add(new JLabel("  Concept:  "),c);
 		c.gridx = 3;
-		addChar_northPanel.add(addChar_conceptField,c);
+		char_northPanel.add(char_conceptField,c);
 		c.gridx = 4;
-		addChar_northPanel.add(new JLabel("  Refresh:  "),c);
+		char_northPanel.add(new JLabel("  Refresh:  "),c);
 		c.gridx = 5;
-		addChar_northPanel.add(addChar_refreshField,c);
+		char_northPanel.add(char_refreshField,c);
 		c.gridx = 6;
-		addChar_northPanel.add(addChar_revisitBox,c);
-		addCharWindow.getContentPane().add(addChar_northPanel,"North");
+		char_northPanel.add(char_revisitBox,c);
+		charWindow.getContentPane().add(char_northPanel,"North");
 		
 		/*
 		 * Build West Panel
 		 */
 		//Build stuntPanel
-		addChar_stuntManager = new ArrayList<JTextField>();
-		addChar_stuntPanel.setLayout(new GridBagLayout());
+		char_stuntManager = new ArrayList<JTextField>();
+		char_stuntPanel.setLayout(new GridBagLayout());
 		JTextField temp = new JTextField(20);
 		c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 0;
-		addChar_stuntPanel.add(new JLabel("Stunt Name"),c);
+		char_stuntPanel.add(new JLabel("Stunt Name"),c);
 		c.gridx++;
-		addChar_stuntPanel.add(new JLabel("   "),c);
+		char_stuntPanel.add(new JLabel("   "),c);
 		c.gridx++;
-		addChar_stuntPanel.add(new JLabel("Cost"),c);
+		char_stuntPanel.add(new JLabel("Cost"),c);
 		c.gridy++;
 		for(int i=0;i<6;i++){
 			c.gridx = 0;
-			addChar_stuntManager.add(temp);
-			addChar_stuntPanel.add(temp,c);
+			char_stuntManager.add(temp);
+			char_stuntPanel.add(temp,c);
 			c.gridx += 2;
 			temp = new JTextField(3);
-			addChar_stuntManager.add(temp);
-			addChar_stuntPanel.add(temp,c);
+			char_stuntManager.add(temp);
+			char_stuntPanel.add(temp,c);
 			c.gridx=0;
 			temp = new JTextField(20);
 			c.gridy++;
 		}
-		addChar_stuntGridY = c.gridy;
+		char_stuntGridY = c.gridy;
 		c.gridx = 0;
 		c.gridwidth = 3;
 		c.weighty = 0.1;
 		c.anchor = GridBagConstraints.FIRST_LINE_END;
 		c.fill = GridBagConstraints.HORIZONTAL;
-		addChar_stuntAdd.addActionListener(this);
-		addChar_stuntPanel.add(addChar_stuntAdd,c);
-		addChar_westPanel.add(addChar_stuntPanel);
+		
+		if(char_stuntAdd.getActionListeners().length == 0){
+			char_stuntAdd.addActionListener(this);
+		}
+		char_stuntPanel.add(char_stuntAdd,c);
+		char_westPanel.add(char_stuntPanel);
 		
 		//Build inventoryPanel
-		addChar_inventoryPanel.setLayout(new GridBagLayout());
+		char_inventoryPanel.setLayout(new GridBagLayout());
 		c.gridx = 0;
 		c.gridy = 0;
-		addChar_inventoryPanel.add(new JLabel("INVENTORY"),c);
+		char_inventoryPanel.add(new JLabel("INVENTORY"),c);
 		c.anchor = GridBagConstraints.FIRST_LINE_START;
 		c.gridy++;
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1;
 		c.weightx = 1;
-		addChar_inventory.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-		addChar_inventoryPanel.add(addChar_inventory,c);
-		addChar_westPanel.add(addChar_inventoryPanel);
-		addCharWindow.getContentPane().add(addChar_westScroll, "West");
+		char_inventory.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_inventoryPanel.add(char_inventory,c);
+		char_westPanel.add(char_inventoryPanel);
+		charWindow.getContentPane().add(char_westScroll, "West");
 		
 		createChar.setPreferredSize(new Dimension(100,30));
-		createChar.addActionListener(this);
-		addCharWindow.getContentPane().add(createChar, "South");
+		if(createChar.getActionListeners().length == 0){
+			createChar.addActionListener(this);
+		}
+		charWindow.getContentPane().add(createChar, "South");
 		
 		//Set size of window and hide
-		addCharWindow.setSize(800, 500);
-		addCharWindow.setExtendedState(Frame.MAXIMIZED_BOTH);
-		addCharWindow.setVisible(false);
+		charWindow.setSize(800, 500);
+		charWindow.setExtendedState(Frame.MAXIMIZED_BOTH);
+		charWindow.setVisible(false);
+	}
+	
+	private void buildViewCharWindow(Character viewChar){
+		charWindow = new JFrame();
+		char_skillPanel = new JPanel();
+		char_skillScroll = new JScrollPane(char_skillPanel);
+		char_aspectPanel = new JPanel();
+		char_aspectScroll = new JScrollPane(char_aspectPanel);
+		char_northPanel = new JPanel(new GridLayout(2,2));
+		char_westPanel = new JPanel(new GridLayout(2,1));
+		char_stuntPanel = new JPanel();
+		char_inventoryPanel = new JPanel();
+		char_westScroll = new JScrollPane(char_westPanel);
+		charPasser = viewChar;
+		
+		JPanel tempPanel;
+		
+		charWindow.setTitle("View Character: " + viewChar.getName());
+		charWindow.setBackground(Color.GRAY);
+		
+		//Setting the border for the different areas
+		char_skillPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_stuntPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_aspectPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_westPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_inventoryPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+	
+		//Build skillPanel
+		char_skillPanel.setLayout(new BoxLayout(char_skillPanel, BoxLayout.Y_AXIS));
+		
+		char_SkillFields = new HashMap<String, JTextField>();
+		for(String skill : allSkills){
+			char_SkillFields.put(skill, new JTextField(viewChar.getSkill(skill).toString(),3));
+			
+			tempPanel = new JPanel();
+			
+			tempPanel.add(new JLabel(skill));
+			tempPanel.add(char_SkillFields.get(skill));
+			
+			char_skillPanel.add(tempPanel);
+		}
+		charWindow.getContentPane().add(char_skillScroll,"East");
+		
+		//build aspectPanel
+		char_aspectFieldManager = new ArrayList<JTextField>();
+		char_aspectAreaManager	= new ArrayList<JTextArea>();
+		char_aspectPanel.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		
+		for(String aspect : viewChar.getAspects()){
+			JTextField aspectField = new JTextField(aspect,30);
+			aspectField.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+			JTextArea aspectArea = new JTextArea(viewChar.getAspectNote(aspect),10,50);
+			aspectArea.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+			
+			c.anchor = GridBagConstraints.FIRST_LINE_START;
+			char_aspectPanel.add(new JLabel("Aspect Name:  "),c);
+			c.gridx++;
+			aspectField.setMinimumSize(aspectField.getPreferredSize());
+			char_aspectPanel.add(aspectField, c);
+			c.gridwidth = 2;
+			c.gridx = 0;
+			c.gridy++;
+			c.fill = GridBagConstraints.BOTH;
+			aspectArea.setMinimumSize(aspectArea.getPreferredSize());
+			char_aspectPanel.add(aspectArea, c);
+			c.gridwidth = 1;
+			c.fill = GridBagConstraints.NONE;
+			c.gridy++;
+			
+			char_aspectFieldManager.add(aspectField);
+			char_aspectAreaManager.add(aspectArea);
+		}
+		
+		c.gridwidth = 1;
+		char_aspectGridY = c.gridy;
+		c.gridx++;
+		c.weighty = 1;
+		c.weightx = 1;
+		c.anchor = GridBagConstraints.FIRST_LINE_END;
+		if(char_aspectAdd.getActionListeners().length == 0){
+			char_aspectAdd.addActionListener(this);
+		}
+		char_aspectPanel.add(char_aspectAdd,c);
+		
+		charWindow.getContentPane().add(char_aspectScroll,"Center");
+		
+		//build northPanel
+		char_northPanel.setLayout(new GridBagLayout());
+		c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		char_northPanel.add(new JLabel("Character:  "),c);
+		c.gridx = 1;
+		char_nameField = new JTextField(viewChar.getName(),25);
+		char_northPanel.add(char_nameField,c);
+		c.gridx = 2;
+		char_northPanel.add(new JLabel("   Allegiance:  "),c);
+		c.gridx = 3;
+		char_allyField = new JTextField(viewChar.getAllegiance(),25);
+		char_northPanel.add(char_allyField,c);
+		c.gridx = 4;
+		char_northPanel.add(new JLabel("  Skill Cap:  "),c);
+		c.gridx = 5;
+		char_skillCapField = new JTextField(viewChar.getSkillCap().toString(),3);
+		char_northPanel.add(char_skillCapField,c);
+		c.gridx = 6;
+		char_northPanel.add(new JLabel("  Skill Points:  "),c);
+		c.gridx = 7;
+		char_skillPointsField = new JTextField(viewChar.getSkillPoints().toString(),3);
+		char_northPanel.add(char_skillPointsField,c);
+		c.gridy = 1;
+		c.gridx = 0;
+		char_typeGroup.add(char_pcRButton);
+		char_pcRButton.setSelected(viewChar.getPC());
+		char_northPanel.add(char_pcRButton,c);
+		if(char_pcRButton.getActionListeners().length == 0){
+			char_pcRButton.addActionListener(this);
+		}
+		char_pcRButton.setActionCommand("PC");
+		c.gridx = 1;
+		char_typeGroup.add(char_npcRButton);
+		char_npcRButton.setSelected(!viewChar.getPC());
+		char_northPanel.add(char_npcRButton,c);
+		if(char_npcRButton.getActionListeners().length == 0){
+			char_npcRButton.addActionListener(this);
+		}
+		char_npcRButton.setActionCommand("NPC");
+		c.gridx = 2;
+		char_northPanel.add(new JLabel("  Concept:  "),c);
+		c.gridx = 3;
+		char_conceptField = new JTextField(viewChar.getConcept(),25);
+		char_northPanel.add(char_conceptField,c);
+		c.gridx = 4;
+		char_northPanel.add(new JLabel("  Refresh:  "),c);
+		c.gridx = 5;
+		char_refreshField = new JTextField(viewChar.getRefresh().toString(),3);
+		char_northPanel.add(char_refreshField,c);
+		c.gridx = 6;
+		char_revisitBox.setSelected(viewChar.getRevisit());
+		char_northPanel.add(char_revisitBox,c);
+		charWindow.getContentPane().add(char_northPanel,"North");
+		
+		/*
+		 * Build West Panel
+		 */
+		//Build stuntPanel
+		char_stuntManager = new ArrayList<JTextField>();
+		char_stuntPanel.setLayout(new GridBagLayout());
+		c = new GridBagConstraints();
+		
+		c.gridx = 0;
+		c.gridy = 0;
+		char_stuntPanel.add(new JLabel("Stunt Name"),c);
+		c.gridx++;
+		char_stuntPanel.add(new JLabel("   "),c);
+		c.gridx++;
+		char_stuntPanel.add(new JLabel("Cost"),c);
+		c.gridy++;
+		
+		for(String stunt : viewChar.getStunts()){
+			JTextField temp = new JTextField(stunt,20);
+			c.gridx = 0;
+			char_stuntManager.add(temp);
+			char_stuntPanel.add(temp,c);
+			c.gridx += 2;
+			temp = new JTextField(viewChar.getStuntCost(stunt).toString(),3);
+			char_stuntManager.add(temp);
+			char_stuntPanel.add(temp,c);
+			c.gridx=0;
+			c.gridy++;
+		}
+		char_stuntGridY = c.gridy;
+		c.gridx = 0;
+		c.gridwidth = 3;
+		c.weighty = 0.1;
+		c.anchor = GridBagConstraints.FIRST_LINE_END;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		if(char_stuntAdd.getActionListeners().length == 0){
+			char_stuntAdd.addActionListener(this);
+		}
+		char_stuntPanel.add(char_stuntAdd,c);
+		char_westPanel.add(char_stuntPanel);
+		
+		//Build inventoryPanel
+		char_inventoryPanel.setLayout(new GridBagLayout());
+		c.gridx = 0;
+		c.gridy = 0;
+		char_inventoryPanel.add(new JLabel("INVENTORY"),c);
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		c.gridy++;
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1;
+		c.weightx = 1;
+		char_inventory = new JTextArea(viewChar.getInventory(),10,26);
+		char_inventory.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_inventoryPanel.add(char_inventory,c);
+		char_westPanel.add(char_inventoryPanel);
+		charWindow.getContentPane().add(char_westScroll, "West");
+		
+		updateChar.setPreferredSize(new Dimension(100,30));
+		if(updateChar.getActionListeners().length == 0){
+			updateChar.addActionListener(this);
+		}
+		charWindow.getContentPane().add(updateChar, "South");
+		
+		//Set size of window and hide
+		charWindow.setSize(800, 500);
+		charWindow.setExtendedState(Frame.MAXIMIZED_BOTH);
+		charWindow.setVisible(true);
 	}
 	
 	private void buildViewer(){
@@ -397,13 +766,19 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	
 		//Setting up menuBar
 		menuBar.add(newChar);
-		newChar.addActionListener(this);
+		if(newChar.getActionListeners().length == 0){
+			newChar.addActionListener(this);
+		}
 		modeGroup.add(comRButton);
 		menuBar.add(comRButton);
-		comRButton.addActionListener(this);
+		if(comRButton.getActionListeners().length == 0){
+			comRButton.addActionListener(this);
+		}
 		modeGroup.add(socRButton);
 		menuBar.add(socRButton);
-		socRButton.addActionListener(this);
+		if(socRButton.getActionListeners().length == 0){
+			socRButton.addActionListener(this);
+		}
 		mainWindow.setJMenuBar(menuBar);
 		
 		//Setting up rightPanel
@@ -412,7 +787,7 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		
 		//Setting up charPanel
 		charPanel.setBackground(Color.WHITE);
-		mainWindow.getContentPane().add(charPanel);
+		mainWindow.getContentPane().add(charPanel,"Center");
 		
 		//Set size of window and display
 		mainWindow.setSize(800,800);
@@ -420,9 +795,8 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		mainWindow.setVisible(true);
 		
 		for(Character loadedChar : chars.keySet()){
-			addCharacterPanel(loadedChar);
-			System.out.println("Creating panel for: " + loadedChar.getName());
-			System.out.println("\t"+loadedChar.getRefresh());
+			createCombatCharacterPanel(loadedChar);
+			characterPanel(loadedChar);
 		}
 	}
 	
@@ -438,7 +812,17 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	}
 
 	@Override
-	public void mouseClicked(MouseEvent arg0) {}
+	public void mouseClicked(MouseEvent me) {
+		JPanel source = (JPanel) me.getSource();
+		Character charSource = new Character();
+		for(Entry<Character,JPanel> entry : chars.entrySet()){
+			if(source.equals(entry.getValue())){
+				charSource = entry.getKey();
+			}
+		}
+		System.out.println("Mouse was clicked on "+charSource.getName());
+		buildViewCharWindow(charSource);
+	}
 
 	@Override
 	public void mouseEntered(MouseEvent arg0) {}
@@ -450,14 +834,5 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	public void mousePressed(MouseEvent arg0) {}
 
 	@Override
-	public void mouseReleased(MouseEvent me) {
-		JPanel source = (JPanel) me.getSource();
-		Character charSource = new Character();
-		for(Entry<Character,JPanel> entry : chars.entrySet()){
-			if(source.equals(entry.getValue())){
-				charSource = entry.getKey();
-			}
-		}
-		System.out.println(charSource.getName() + " was clicked!");
-	}
+	public void mouseReleased(MouseEvent me) {}
 }
