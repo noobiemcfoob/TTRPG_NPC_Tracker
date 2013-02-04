@@ -35,16 +35,22 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	 * Class Variables
 	 */
 	static public HashMap<Character,JPanel> chars;
+	private ArrayList<Character> charOrder;
 	private Character charPasser;
 	Yaml yaml = new Yaml();
 
 	
 	public Viewer(){
 		readSkills();
+		System.out.println("Loading Config...");
+		loadConfig();
+		System.out.println("Loading Characters...");
 		loadCharacters();
+		System.out.println("Building GUI...");
 		buildViewer();
-		buildAddCharWindow();
+		
 		//Separate into thread
+		System.out.println("Starting thread...");
 		new Thread(this).start();
 	}
 	
@@ -60,6 +66,7 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	@Override
 	public void actionPerformed(ActionEvent ae) {
 		if(ae.getSource() == newChar){
+			buildAddCharWindow();
 			charWindow.setVisible(true);
 			charWindow.requestFocus();
 		}else if(ae.getSource() == char_aspectAdd){
@@ -68,19 +75,31 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 			addStunt_AddChar();
 		}else if(ae.getSource() == createChar){
 			captureCharacter();
+			charOrder.add(charPasser);
+			saveConfig();
 			charWindow.setVisible(false);
+			charPasser = null;
 		}else if(ae.getSource() == updateChar){
+			delCharacterPanel(charPasser);
 			captureCharacter(charPasser);
 			charWindow.setVisible(false);
+			charPasser = null;
+		}else if(ae.getSource() == deleteChar){
+			delCharacterPanel(charPasser);
+			charWindow.setVisible(false);
+			chars.remove(charPasser);
+			charPasser = null;
+			saveCharacters();
+			saveConfig();
 		}else if(ae.getSource() == comRButton){
 			charPanel = new JPanel();
 			charPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 			charPanel.setBackground(Color.WHITE);
 			mainWindow.getContentPane().add(charPanel,"Center");
 			
-			for(Character loadedChar : chars.keySet()){
+			for(Character loadedChar : charOrder){
 				createCombatCharacterPanel(loadedChar);
-				characterPanel(loadedChar);
+				addCharacterPanel(loadedChar);
 			}
 			mainWindow.setVisible(true);
 		}else if(ae.getSource() == socRButton){
@@ -89,9 +108,9 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 			charPanel.setBackground(Color.WHITE);
 			mainWindow.getContentPane().add(charPanel,"Center");
 			
-			for(Character loadedChar : chars.keySet()){
+			for(Character loadedChar : charOrder){
 				createSocialCharacterPanel(loadedChar);
-				characterPanel(loadedChar);
+				addCharacterPanel(loadedChar);
 			}
 			mainWindow.setVisible(true);
 		}
@@ -160,7 +179,8 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		
 		chars.put(newChar, new JPanel());
 		createCombatCharacterPanel(newChar);
-		characterPanel(newChar);
+		addCharacterPanel(newChar);
+		charPasser = newChar;
 		saveCharacters();
 	}
 
@@ -228,7 +248,7 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		
 		chars.put(newChar, new JPanel());
 		createCombatCharacterPanel(newChar);
-		characterPanel(newChar);
+		addCharacterPanel(newChar);
 		saveCharacters();
 	}
 	
@@ -237,8 +257,21 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 			ObjectOutputStream saveOOS = new ObjectOutputStream(new FileOutputStream("characters.ser"));
 			saveOOS.writeObject(new ArrayList<Character>(chars.keySet()));
 			saveOOS.close();
+			saveOOS = new ObjectOutputStream(new FileOutputStream("config.ser"));
+			saveOOS.writeObject(new ArrayList<Character>(charOrder));
+			saveOOS.close();
 		}catch (Exception e){
 			System.out.println("Problem saving characters.ser: " + e);
+		}
+	}
+	
+	private void saveConfig() {
+		try{
+			ObjectOutputStream saveOOS = new ObjectOutputStream(new FileOutputStream("config.ser"));
+			saveOOS.writeObject(new ArrayList<Character>(charOrder));
+			saveOOS.close();
+		}catch (Exception e){
+			System.out.println("Problem saving config.ser: " + e);
 		}
 	}
 	
@@ -252,15 +285,32 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 				chars.put(loadedChar, new JPanel());
 			}
 			OIS.close();
+			if(charOrder.size() == 0){
+				throw new IOException();
+			}
 		}catch (Exception e){
 			System.out.println("Problem loading characters.ser: " + e);
 			System.out.println("Generating new list");
 			chars = new HashMap<Character,JPanel>();
+			charOrder = new ArrayList<Character>();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void loadConfig(){
+		try{
+			ObjectInputStream OIS = new ObjectInputStream(new FileInputStream("config.ser"));
+			charOrder = new ArrayList<Character>();
+			charOrder = (ArrayList<Character>)OIS.readObject();
+			OIS.close();
+		}catch (Exception e){
+			System.out.println("Problem loading config.ser: " + e);
+			System.out.println("Generating new config");
+			charOrder = new ArrayList<Character>();
 		}
 	}
 
 	private void createCombatCharacterPanel(Character newChar){
-		chars.remove(newChar);
 		JPanel newPanel = new JPanel();
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
@@ -306,7 +356,6 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	}
 	
 	private void createSocialCharacterPanel(Character newChar){
-		chars.remove(newChar);
 		JPanel newPanel = new JPanel();
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
@@ -343,16 +392,52 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		chars.put(newChar, newPanel);
 	}
 	
-	private void characterPanel(Character newChar){
+	private void addCharacterPanel(Character newChar){
 		charPanel.add(chars.get(newChar));
+		
 		if(chars.get(newChar).getMouseListeners().length == 0)
 			chars.get(newChar).addMouseListener(this);
 		mainWindow.setVisible(true);
+		saveConfig();
+	}
+	
+	private void delCharacterPanel(Character delChar){
+		charPanel.remove(chars.get(delChar));
+		mainWindow.repaint();
 	}
 	
 	private void buildAddCharWindow(){
-		charWindow = new JFrame();
 		JPanel tempPanel;
+		
+		charWindow = new JFrame();
+		char_skillPanel = new JPanel();
+		char_skillScroll = new JScrollPane(char_skillPanel);
+		char_aspectPanel = new JPanel();
+		char_aspectScroll = new JScrollPane(char_aspectPanel);
+		char_northPanel = new JPanel(new GridLayout(2,2));
+		char_westPanel = new JPanel(new GridLayout(2,1));
+		char_stuntPanel = new JPanel();
+		char_inventoryPanel = new JPanel();
+		char_westScroll = new JScrollPane(char_westPanel);
+		
+		//NorthPanel items
+		char_nameField = new JTextField(25);
+		char_allyField = new JTextField(25);
+		char_skillCapField = new JTextField(3);
+		char_skillPointsField = new JTextField(3);
+		char_refreshField = new JTextField(3);
+		char_conceptField = new JTextField(25);
+		char_typeGroup = new ButtonGroup();
+		char_pcRButton = new JRadioButton("PC");
+		char_npcRButton = new JRadioButton("NPC");
+		char_revisitBox = new JCheckBox("Revisit?");
+		
+		//westPanel items
+		char_stuntGridY = 0;
+		char_inventory = new JTextArea(10,26);
+		
+		//aspectPanel items
+		char_aspectGridY = 0;
 		
 		charWindow.setTitle("Add New Character");
 		charWindow.setBackground(Color.GRAY);
@@ -650,8 +735,16 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		c.gridx = 6;
 		char_northPanel.add(new JLabel("  Skill Points:  "),c);
 		c.gridx = 7;
+		c.weightx = 1;
 		char_skillPointsField = new JTextField(viewChar.getSkillPoints().toString(),3);
 		char_northPanel.add(char_skillPointsField,c);
+		c.gridx++;
+		c.anchor = GridBagConstraints.FIRST_LINE_END;
+		char_northPanel.add(deleteChar,c);
+		if(deleteChar.getActionListeners().length == 0){
+			deleteChar.addActionListener(this);
+		}
+		c.anchor = GridBagConstraints.CENTER;
 		c.gridy = 1;
 		c.gridx = 0;
 		char_typeGroup.add(char_pcRButton);
@@ -680,6 +773,7 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		char_refreshField = new JTextField(viewChar.getRefresh().toString(),3);
 		char_northPanel.add(char_refreshField,c);
 		c.gridx = 6;
+		c.weighty = 1;
 		char_revisitBox.setSelected(viewChar.getRevisit());
 		char_northPanel.add(char_revisitBox,c);
 		charWindow.getContentPane().add(char_northPanel,"North");
@@ -748,7 +842,7 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		charWindow.getContentPane().add(updateChar, "South");
 		
 		//Set size of window and hide
-		charWindow.setSize(800, 500);
+		charWindow.setSize(1100, 500);
 		charWindow.setExtendedState(Frame.MAXIMIZED_BOTH);
 		charWindow.setVisible(true);
 	}
@@ -794,9 +888,10 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		mainWindow.setExtendedState(Frame.MAXIMIZED_BOTH);
 		mainWindow.setVisible(true);
 		
-		for(Character loadedChar : chars.keySet()){
+		System.out.println("Building GUI...");
+		for(Character loadedChar : charOrder){
 			createCombatCharacterPanel(loadedChar);
-			characterPanel(loadedChar);
+			addCharacterPanel(loadedChar);
 		}
 	}
 	

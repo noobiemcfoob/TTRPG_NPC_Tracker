@@ -44,18 +44,19 @@ abstract public class GUIElem {
 	/*
 	 * GUI Items for add Character window
 	 */
-	protected JFrame charWindow = new JFrame();
-	protected JPanel char_skillPanel = new JPanel();
-	protected JScrollPane char_skillScroll = new JScrollPane(char_skillPanel);
-	protected JPanel char_aspectPanel = new JPanel();
-	protected JScrollPane char_aspectScroll = new JScrollPane(char_aspectPanel);
-	protected JPanel char_northPanel = new JPanel(new GridLayout(2,2));
+	protected JFrame charWindow;
+	protected JPanel char_skillPanel;
+	protected JScrollPane char_skillScroll;
+	protected JPanel char_aspectPanel;
+	protected JScrollPane char_aspectScroll;
+	protected JPanel char_northPanel;
 	protected JButton createChar = new JButton("Create Character");
 	protected JButton updateChar = new JButton("Update Character");
-	protected JPanel char_westPanel = new JPanel(new GridLayout(2,1));
-	protected JPanel char_stuntPanel = new JPanel();
-	protected JPanel char_inventoryPanel = new JPanel();
-	protected JScrollPane char_westScroll = new JScrollPane(char_westPanel);
+	protected JButton deleteChar = new JButton("Delete");
+	protected JPanel char_westPanel;
+	protected JPanel char_stuntPanel;
+	protected JPanel char_inventoryPanel;
+	protected JScrollPane char_westScroll;
 	
 	//northPanel items
 	protected JTextField char_nameField = new JTextField(25);
