@@ -1,5 +1,6 @@
 import java.util.*;
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -109,6 +110,7 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	}
 	
 	private void captureCharacter() {
+		System.out.println("Capturing Character");
 		Character newChar = new Character();
 		
 		//Set General Info
@@ -150,7 +152,7 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 			}
 		}
 		
-		//Set Stunts
+		//Set Aspects
 		for(int i = 0;i<char_aspectFieldManager.size();i++){
 			if(!char_aspectFieldManager.get(i).getText().equals("")){
 				newChar.addAspect(char_aspectFieldManager.get(i).getText(), char_aspectAreaManager.get(i).getText());
@@ -248,10 +250,12 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	}
 	
 	private void saveCharacters() {
+		System.out.println("\nSaving Characters");
 		try{
 			ObjectOutputStream saveOOS = new ObjectOutputStream(new FileOutputStream("characters.ser"));
 			saveOOS.writeObject(charArray);
 			saveOOS.close();
+			System.out.println("Characters saved");
 		}catch (Exception e){
 			System.out.println("Problem saving characters.ser: " + e);
 		}
@@ -278,6 +282,7 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	}
 
 	private void createCombatCharacterPanel(Character newChar){
+		System.out.println("\nBuilding Combat panel for: " + newChar.getName());
 		JPanel newPanel = new JPanel();
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
@@ -297,29 +302,36 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		c.gridx = 0;
 		c.gridy++;
 		
-		newPanel.add(new JLabel(newChar.getAttackSkill()+": "),c);
-		c.gridx++;
-		newPanel.add(new JLabel(newChar.getSkill(newChar.getAttackSkill().toUpperCase()).toString()),c);
-		c.gridx++;
-		newPanel.add(new JLabel("  "),c);
-		c.gridx++;
-		newPanel.add(new JTextField(2),c);
-		c.gridx=0;
-		c.gridy++;
+		ArrayList<String> attackSkills = newChar.getAttackSkills();
 		
-		c.weightx = 1;
-		c.weighty = 1;
-		newPanel.add(new JLabel(newChar.getDefenseSkill()+": "),c);
-		c.gridx++;
-		newPanel.add(new JLabel(newChar.getSkill(newChar.getDefenseSkill().toUpperCase()).toString()),c);
-		c.gridx++;
-		newPanel.add(new JLabel("  "),c);
-		c.gridx++;
-		newPanel.add(new JTextField(2),c);
-		c.gridx=0;
-		c.gridy++;
+		for(String skill : attackSkills){
+			newPanel.add(new JLabel(skill+": "),c);
+			c.gridx++;
+			newPanel.add(new JLabel(newChar.getSkill(skill.toUpperCase()).toString()),c);
+			c.gridx++;
+			newPanel.add(new JLabel("  "),c);
+			c.gridx++;
+			newPanel.add(new JTextField(2),c);
+			c.gridx=0;
+			c.gridy++;
+		}
+		
+		ArrayList<String> defenseSkills = newChar.getDefenseSkills();
+		
+		for(String skill : defenseSkills){
+			newPanel.add(new JLabel(skill+": "),c);
+			c.gridx++;
+			newPanel.add(new JLabel(newChar.getSkill(skill.toUpperCase()).toString()),c);
+			c.gridx++;
+			newPanel.add(new JLabel("  "),c);
+			c.gridx++;
+			newPanel.add(new JTextField(2),c);
+			c.gridx=0;
+			c.gridy++;
+		}
 		
 		newChar.panel = newPanel;
+		System.out.println("Combat Panel Built...");
 	}
 	
 	private void createSocialCharacterPanel(Character newChar){
@@ -360,12 +372,14 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	}
 	
 	private void addCharacterPanel(Character newChar){
+		System.out.println("\nAdding character panel for " + newChar.getName());
 		charPanel.add(newChar.panel);
-		
+
 		if(newChar.panel.getMouseListeners().length == 0)
 			newChar.panel.addMouseListener(this);
 		mainWindow.setVisible(true);
 		saveCharacters();
+
 	}
 	
 	private void delCharacterPanel(Character delChar){
@@ -382,9 +396,12 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		char_aspectPanel = new JPanel();
 		char_aspectScroll = new JScrollPane(char_aspectPanel);
 		char_northPanel = new JPanel(new GridLayout(2,2));
-		char_westPanel = new JPanel(new GridLayout(2,1));
+		char_westPanel = new JPanel(new GridLayout(3,1));
 		char_stuntPanel = new JPanel();
 		char_inventoryPanel = new JPanel();
+		char_notesPanel = new JPanel();
+		char_centerPanel = new JPanel(new GridBagLayout());
+		GridBagConstraints c2 = new GridBagConstraints();
 		char_westScroll = new JScrollPane(char_westPanel);
 		
 		//NorthPanel items
@@ -410,11 +427,13 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		charWindow.setBackground(Color.GRAY);
 		
 		//Setting the border for the different areas
+		char_centerPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		char_skillPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		char_stuntPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		char_aspectPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		char_westPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		char_inventoryPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_notesPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 	
 		//Build skillPanel
 		char_skillPanel.setLayout(new BoxLayout(char_skillPanel, BoxLayout.Y_AXIS));
@@ -432,7 +451,17 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		}
 		charWindow.getContentPane().add(char_skillScroll,"East");
 		
+		/*
+		 * Build centerPanel
+		 */
 		//build aspectPanel
+		c2.fill = GridBagConstraints.BOTH;
+		c2.weightx = 1;
+		c2.weighty = 1;
+		c2.gridx = 0;
+		c2.gridy = 0;
+		c2.anchor = GridBagConstraints.FIRST_LINE_START;
+		c2.gridheight = 2;
 		char_aspectFieldManager 	= new ArrayList<JTextField>();
 		char_aspectAreaManager	= new ArrayList<JTextArea>();
 		JTextField aspectField = new JTextField(30);
@@ -468,11 +497,51 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 			char_aspectAdd.addActionListener(this);
 		}
 		char_aspectPanel.add(char_aspectAdd,c);
-		
 		char_aspectFieldManager.add(aspectField);
 		char_aspectAreaManager.add(aspectArea);
+		char_centerPanel.add(char_aspectScroll,c2);
 		
-		charWindow.getContentPane().add(char_aspectScroll);
+		//Build Notes and Inventory panels
+		c2.fill = GridBagConstraints.BOTH;
+		c2.weightx = 0.1;
+		c2.weighty = 0.1;
+		c2.gridx = 0;
+		c2.gridy = 2;
+		c2.anchor = GridBagConstraints.FIRST_LINE_START;
+		c2.gridheight = 1;
+		JPanel southCenter = new JPanel(new GridLayout(1,2));
+		//Build notesPanel
+		char_notesPanel.setLayout(new GridBagLayout());
+		c.gridx = 0;
+		c.gridy = 0;
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		char_notesPanel.add(new JLabel("NOTES"),c);
+		c.gridy++;
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1;
+		c.weightx = 1;
+		char_notes= new JTextArea(10,13);
+		char_notes.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_notesPanel.add(char_notes,c);
+		southCenter.add(char_notesPanel);
+		
+		//Build inventoryPanel
+		char_inventoryPanel.setLayout(new GridBagLayout());
+		c.gridx = 0;
+		c.gridy = 0;
+		char_inventoryPanel.add(new JLabel("INVENTORY"),c);
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		c.gridy++;
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1;
+		c.weightx = 1;
+		char_inventory.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_inventoryPanel.add(char_inventory,c);
+		southCenter.add(char_inventoryPanel);
+		
+		char_centerPanel.add(southCenter,c2);
+		
+		charWindow.getContentPane().add(char_centerPanel);
 		
 		//build northPanel
 		char_northPanel.setLayout(new GridBagLayout());
@@ -566,19 +635,6 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		char_stuntPanel.add(char_stuntAdd,c);
 		char_westPanel.add(char_stuntPanel);
 		
-		//Build inventoryPanel
-		char_inventoryPanel.setLayout(new GridBagLayout());
-		c.gridx = 0;
-		c.gridy = 0;
-		char_inventoryPanel.add(new JLabel("INVENTORY"),c);
-		c.anchor = GridBagConstraints.FIRST_LINE_START;
-		c.gridy++;
-		c.fill = GridBagConstraints.BOTH;
-		c.weighty = 1;
-		c.weightx = 1;
-		char_inventory.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-		char_inventoryPanel.add(char_inventory,c);
-		char_westPanel.add(char_inventoryPanel);
 		charWindow.getContentPane().add(char_westScroll, "West");
 		
 		createChar.setPreferredSize(new Dimension(100,30));
@@ -600,9 +656,12 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		char_aspectPanel = new JPanel();
 		char_aspectScroll = new JScrollPane(char_aspectPanel);
 		char_northPanel = new JPanel(new GridLayout(2,2));
-		char_westPanel = new JPanel(new GridLayout(2,1));
+		char_westPanel = new JPanel(new GridLayout(3,1));
 		char_stuntPanel = new JPanel();
+		char_notesPanel = new JPanel();
 		char_inventoryPanel = new JPanel();
+		char_centerPanel = new JPanel(new GridBagLayout());
+		GridBagConstraints c2 = new GridBagConstraints();
 		char_westScroll = new JScrollPane(char_westPanel);
 		charPasser = viewChar;
 		
@@ -612,12 +671,15 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		charWindow.setBackground(Color.GRAY);
 		
 		//Setting the border for the different areas
+		char_centerPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		char_skillPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		char_stuntPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		char_aspectPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		char_westPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		char_inventoryPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-	
+		char_notesPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+
+		
 		//Build skillPanel
 		char_skillPanel.setLayout(new BoxLayout(char_skillPanel, BoxLayout.Y_AXIS));
 		
@@ -634,40 +696,43 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		}
 		charWindow.getContentPane().add(char_skillScroll,"East");
 		
+		/*
+		 * Build centerPanel
+		 */
 		//build aspectPanel
-		char_aspectFieldManager = new ArrayList<JTextField>();
+		c2.fill = GridBagConstraints.BOTH;
+		c2.weightx = 1;
+		c2.weighty = 1;
+		c2.gridx = 0;
+		c2.gridy = 0;
+		c2.anchor = GridBagConstraints.FIRST_LINE_START;
+		c2.gridheight = 2;
+		char_aspectFieldManager 	= new ArrayList<JTextField>();
 		char_aspectAreaManager	= new ArrayList<JTextArea>();
+		JTextField aspectField = new JTextField(30);
+		aspectField.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		JTextArea aspectArea = new JTextArea(10,50);
+		aspectArea.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		char_aspectPanel.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 0;
-		
-		for(String aspect : viewChar.getAspects()){
-			JTextField aspectField = new JTextField(aspect,30);
-			aspectField.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-			JTextArea aspectArea = new JTextArea(viewChar.getAspectNote(aspect),10,50);
-			aspectArea.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-			
-			c.anchor = GridBagConstraints.FIRST_LINE_START;
-			char_aspectPanel.add(new JLabel("Aspect Name:  "),c);
-			c.gridx++;
-			aspectField.setMinimumSize(aspectField.getPreferredSize());
-			char_aspectPanel.add(aspectField, c);
-			c.gridwidth = 2;
-			c.gridx = 0;
-			c.gridy++;
-			c.fill = GridBagConstraints.BOTH;
-			aspectArea.setMinimumSize(aspectArea.getPreferredSize());
-			char_aspectPanel.add(aspectArea, c);
-			c.gridwidth = 1;
-			c.fill = GridBagConstraints.NONE;
-			c.gridy++;
-			
-			char_aspectFieldManager.add(aspectField);
-			char_aspectAreaManager.add(aspectArea);
-		}
-		
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		char_aspectPanel.add(new JLabel("Aspect Name:  "),c);
+		c.gridx++;
+		aspectField.setMinimumSize(aspectField.getPreferredSize());
+		char_aspectPanel.add(aspectField, c);
+		c.gridwidth = 2;
+		c.gridx = 0;
+		c.gridy++;
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		c.fill = GridBagConstraints.BOTH;
+		aspectArea.setMinimumSize(aspectArea.getPreferredSize());
+		char_aspectPanel.add(aspectArea, c);
 		c.gridwidth = 1;
+		c.anchor = GridBagConstraints.NONE;
+		c.fill = GridBagConstraints.NONE;
+		c.gridy++;
 		char_aspectGridY = c.gridy;
 		c.gridx++;
 		c.weighty = 1;
@@ -677,8 +742,51 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 			char_aspectAdd.addActionListener(this);
 		}
 		char_aspectPanel.add(char_aspectAdd,c);
+		char_aspectFieldManager.add(aspectField);
+		char_aspectAreaManager.add(aspectArea);
+		char_centerPanel.add(char_aspectScroll,c2);
 		
-		charWindow.getContentPane().add(char_aspectScroll,"Center");
+		//Build Notes and Inventory panels
+		c2.fill = GridBagConstraints.BOTH;
+		c2.weightx = 0.1;
+		c2.weighty = 0.1;
+		c2.gridx = 0;
+		c2.gridy = 2;
+		c2.anchor = GridBagConstraints.FIRST_LINE_START;
+		c2.gridheight = 1;
+		JPanel southCenter = new JPanel(new GridLayout(1,2));
+		//Build notesPanel
+		char_notesPanel.setLayout(new GridBagLayout());
+		c.gridx = 0;
+		c.gridy = 0;
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		char_notesPanel.add(new JLabel("NOTES"),c);
+		c.gridy++;
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1;
+		c.weightx = 1;
+		char_notes= new JTextArea(10,13);
+		char_notes.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_notesPanel.add(char_notes,c);
+		southCenter.add(char_notesPanel);
+		
+		//Build inventoryPanel
+		char_inventoryPanel.setLayout(new GridBagLayout());
+		c.gridx = 0;
+		c.gridy = 0;
+		char_inventoryPanel.add(new JLabel("INVENTORY"),c);
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		c.gridy++;
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1;
+		c.weightx = 1;
+		char_inventory.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_inventoryPanel.add(char_inventory,c);
+		southCenter.add(char_inventoryPanel);
+		
+		char_centerPanel.add(southCenter,c2);
+		
+		charWindow.getContentPane().add(char_centerPanel);
 		
 		//build northPanel
 		char_northPanel.setLayout(new GridBagLayout());
@@ -786,20 +894,6 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		char_stuntPanel.add(char_stuntAdd,c);
 		char_westPanel.add(char_stuntPanel);
 		
-		//Build inventoryPanel
-		char_inventoryPanel.setLayout(new GridBagLayout());
-		c.gridx = 0;
-		c.gridy = 0;
-		char_inventoryPanel.add(new JLabel("INVENTORY"),c);
-		c.anchor = GridBagConstraints.FIRST_LINE_START;
-		c.gridy++;
-		c.fill = GridBagConstraints.BOTH;
-		c.weighty = 1;
-		c.weightx = 1;
-		char_inventory = new JTextArea(viewChar.getInventory(),10,26);
-		char_inventory.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-		char_inventoryPanel.add(char_inventory,c);
-		char_westPanel.add(char_inventoryPanel);
 		charWindow.getContentPane().add(char_westScroll, "West");
 		
 		updateChar.setPreferredSize(new Dimension(100,30));
@@ -843,7 +937,21 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		mainWindow.setJMenuBar(menuBar);
 		
 		//Setting up rightPanel
-		rightPanel.add(testButton);
+		JPanel adjectives = new JPanel();
+		adjectives.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		adjectives.setLayout(new BoxLayout(adjectives, BoxLayout.Y_AXIS));
+		adjectives.add(new JLabel("ADJECTIVES"));
+		adjectives.add(new JLabel("Legendary 7+"));
+		adjectives.add(new JLabel("Epic 6"));
+		adjectives.add(new JLabel("Superb 5"));
+		adjectives.add(new JLabel("Great 4"));
+		adjectives.add(new JLabel("Good 3"));
+		adjectives.add(new JLabel("Fair 2"));
+		adjectives.add(new JLabel("Average 1"));
+		adjectives.add(new JLabel("Mediocre 0"));
+		adjectives.add(new JLabel("Poor -1"));
+		adjectives.add(new JLabel("Terrible -2"));
+		rightPanel.add(adjectives);
 		mainWindow.getContentPane().add(rightPanel, "East");
 		
 		//Setting up charPanel
@@ -860,6 +968,7 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 			createCombatCharacterPanel(loadedChar);
 			addCharacterPanel(loadedChar);
 		}
+
 		System.out.println("GUI Built...");
 	}
 	

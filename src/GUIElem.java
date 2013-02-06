@@ -28,7 +28,7 @@ abstract public class GUIElem {
 	protected JPanel rightPanel = new JPanel();
 	protected JMenuBar menuBar = new JMenuBar();
 	
-	//menuBar itmes
+	//menuBar items
 	protected JButton newChar = new JButton("+Char");
 	protected JMenu testMenu = new JMenu("File");
 	protected JMenuItem testMenuItem = new JMenuItem("Test");
@@ -44,17 +44,20 @@ abstract public class GUIElem {
 	/*
 	 * GUI Items for add Character window
 	 */
+	protected JMenuBar charMenuBar = new JMenuBar();
+	protected JMenu charTemplates = new JMenu("Templates");
 	protected JFrame charWindow;
 	protected JPanel char_skillPanel;
 	protected JScrollPane char_skillScroll;
-	protected JPanel char_aspectPanel;
 	protected JScrollPane char_aspectScroll;
 	protected JPanel char_northPanel;
+	protected JPanel char_centerPanel;
 	protected JButton createChar = new JButton("Create Character");
-	protected JButton updateChar = new JButton("Update Character");
+	protected JButton tempupdateChar = new JButton("Update Character");
 	protected JButton deleteChar = new JButton("Delete");
 	protected JPanel char_westPanel;
 	protected JPanel char_stuntPanel;
+	protected JPanel char_notesPanel;
 	protected JPanel char_inventoryPanel;
 	protected JScrollPane char_westScroll;
 	
@@ -73,9 +76,11 @@ abstract public class GUIElem {
 	//westPanel items
 	protected Integer char_stuntGridY = 0;
 	protected JButton char_stuntAdd = new JButton("Add Additional Stunt");
-	protected JTextArea char_inventory = new JTextArea(10,26);
+	protected JTextArea char_inventory = new JTextArea(10,13);
+	protected JTextArea char_notes = new JTextArea(10,13);
 	
-	//aspectPanel items
+	//centerPanel items
+	protected JPanel char_aspectPanel;
 	protected Integer char_aspectGridY = 0;
 	protected JButton char_aspectAdd = new JButton("Add Additional Aspect");
 	

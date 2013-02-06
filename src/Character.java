@@ -17,10 +17,22 @@ public class Character implements Serializable{
 	private Integer refresh;
 	private boolean revisit;
 	private String inventory;
+	private String notes;
 	
 	//Combat related variables
-	private String attackSkill = "Weapons";
-	private String defenseSkill = "Athletics";
+	private ArrayList<String> attackSkills = new ArrayList<String>(Arrays.asList(
+			"ARCHERY",
+			"EQUESTRIAN",
+			"MIGHT",
+			"STRIKE"
+		));
+	private ArrayList<String> defenseSkills = new ArrayList<String>(Arrays.asList(
+			"ALERTNESS",
+			"ATHLETICS",
+			"DISCIPLINE",
+			"CONVICTION",
+			"PARRY"
+		));
 	
 	//Social related variables
 	private ArrayList<String> socialSkills = new ArrayList<String>(Arrays.asList(
@@ -59,6 +71,14 @@ public class Character implements Serializable{
 		for(String skill : Viewer.allSkills){
 			skills.put(skill, 0);
 		}
+	}
+	
+	public String getNotes(){
+		return notes;
+	}
+	
+	public void setNotes(String notes){
+		this.notes = notes;
 	}
 	
 	public String getName(){
@@ -137,20 +157,20 @@ public class Character implements Serializable{
 		this.inventory = this.inventory + "\n" + inventory;
 	}
 
-	public String getAttackSkill(){
-		return attackSkill;
+	public ArrayList<String> getAttackSkills(){
+		return attackSkills;
 	}
 	
-	public void setAttackSkill(String skill){
-		this.attackSkill = skill;
+	public void setAttackSkills(ArrayList<String> skills){
+		this.attackSkills = skills;
 	}
 	
-	public String getDefenseSkill(){
-		return defenseSkill;
+	public ArrayList<String> getDefenseSkills(){
+		return defenseSkills;
 	}
 	
-	public void setDefenseSkill(String skill){
-		this.defenseSkill = skill;
+	public void setDefenseSkills(ArrayList<String> skills){
+		this.defenseSkills = skills;
 	}
 	
 	public ArrayList<String> getSocialSkills(){
