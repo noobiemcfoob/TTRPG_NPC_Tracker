@@ -1,8 +1,10 @@
 import java.util.*;
+import javax.swing.*;
 import java.io.Serializable;
 
 public class Character implements Serializable{
-	private static final long serialVersionUID = 42L;
+	public JPanel panel;
+	private static final long serialVersionUID = 13L;
 	
 	static ArrayList<String> allSkills;
 	
@@ -29,6 +31,19 @@ public class Character implements Serializable{
 		"Presence",
 		"Rapport"
 	));
+	
+	//Health Related Variables
+	private ArrayList<Boolean> physicalStress;
+	private Integer maxPhyStress = 0;
+	private ArrayList<Boolean> mentalStress;
+	private Integer maxMenStress = 0;
+	private ArrayList<Boolean> socialStress;
+	private Integer maxSocStress = 0;
+	private ArrayList<Boolean> armorStress;
+	private ArrayList<Boolean> miscStress;
+	private Integer maxMiscStress;
+	
+	private ArrayList<String> consequences;
 	
 	//Hash table of all skills for a character. "Skill Name" -> Skill Value
 	private HashMap<String,Integer> skills = new HashMap<String,Integer>();
@@ -254,6 +269,68 @@ public class Character implements Serializable{
 			return true;
 		}catch (Exception e){
 			return false;
+		}
+	}
+	
+	public boolean addConsequence(Integer level, String consequence){
+		switch(level){
+			case -2: 	consequences.set(0, consequence);
+						return true;
+			case -4: 	consequences.set(0, consequence); 
+						return true;
+			case -6: 	consequences.set(0, consequence);
+						return true; 
+			case -8: 	consequences.set(0, consequence);
+						return true;
+			default: return false;
+		}
+	}
+	
+	public ArrayList<String> getConsequences(){
+		return consequences;
+	}
+	
+	public void setMaxMenStress(Integer maxStress){
+		maxMenStress = maxStress;
+		mentalStress.ensureCapacity(maxStress);
+	}
+	
+	public void setPhyMenStress(Integer maxStress){
+		maxPhyStress = maxStress;
+		physicalStress.ensureCapacity(maxStress);
+	}
+	
+	public void setSocMenStress(Integer maxStress){
+		maxSocStress = maxStress;
+		socialStress.ensureCapacity(maxStress);
+	}
+	
+	public void setMiscMenStress(Integer maxStress){
+		maxMiscStress = maxStress;
+		miscStress.ensureCapacity(maxStress);
+	}
+	
+	public Integer getMaxMenStress(){
+		return maxMenStress;
+	}
+	
+	public Integer getMaxPhyStress(){
+		return maxPhyStress;
+	}
+	
+	public Integer getMaxSocStress(){
+		return maxSocStress;
+	}
+	
+	public Integer getMaxMiscStress(){
+		return maxMiscStress;
+	}
+	
+	public void setMentalStress(Integer level){
+		if(level > maxMenStress){
+			
+		}else{
+			mentalStress.set(level, true);
 		}
 	}
 }
