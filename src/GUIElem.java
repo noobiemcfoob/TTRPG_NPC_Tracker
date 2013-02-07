@@ -44,8 +44,9 @@ abstract public class GUIElem {
 	/*
 	 * GUI Items for add Character window
 	 */
-	protected JMenuBar charMenuBar = new JMenuBar();
-	protected JMenu charTemplates = new JMenu("Templates");
+	protected JMenuBar charMenuBar;
+	protected JMenu charTemplates;
+	protected ArrayList<JMenuItem> charTempItems; 
 	protected JFrame charWindow;
 	protected JPanel char_skillPanel;
 	protected JScrollPane char_skillScroll;
@@ -53,7 +54,8 @@ abstract public class GUIElem {
 	protected JPanel char_northPanel;
 	protected JPanel char_centerPanel;
 	protected JButton createChar = new JButton("Create Character");
-	protected JButton tempupdateChar = new JButton("Update Character");
+	protected JButton tempChar = new JButton("Create Template");
+	protected JButton updateChar = new JButton("Update Character");
 	protected JButton deleteChar = new JButton("Delete");
 	protected JPanel char_westPanel;
 	protected JPanel char_stuntPanel;
