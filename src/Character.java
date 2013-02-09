@@ -4,7 +4,9 @@ import java.io.Serializable;
 
 public class Character implements Serializable{
 	public JPanel panel;
-	private static final long serialVersionUID = 13L;
+	public JButton next;
+	public JButton back;
+	private static final long serialVersionUID = 14L;
 	
 	static ArrayList<String> allSkills;
 	

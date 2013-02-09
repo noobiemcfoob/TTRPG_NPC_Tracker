@@ -37,6 +37,10 @@ abstract public class GUIElem {
 	protected ButtonGroup modeGroup = new ButtonGroup();
 	protected JRadioButton comRButton = new JRadioButton("Combat");
 	protected JRadioButton socRButton = new JRadioButton("Social");
+	protected ButtonGroup listGroup = new ButtonGroup();
+	protected JRadioButton pcRButton = new JRadioButton("PCs Only");
+	protected JRadioButton npcRButton = new JRadioButton("NPCs Only");
+	protected JRadioButton allRButton = new JRadioButton("Show All");
 	
 	//rightPanel items
 	protected JButton testButton = new JButton("Test");

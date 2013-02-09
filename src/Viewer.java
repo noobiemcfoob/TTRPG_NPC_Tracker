@@ -36,6 +36,8 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	 */
 	private ArrayList<Character> charArray;
 	private ArrayList<Character> templateArray;
+	private ArrayList<Character> pcList;
+	private ArrayList<Character> npcList;
 	private Character charPasser;
 	Yaml yaml = new Yaml();
 
@@ -65,6 +67,40 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 
 	@Override
 	public void actionPerformed(ActionEvent ae) {
+		for(Character entry : charArray){
+			if(ae.getSource() == entry.back){
+				int index = charArray.indexOf(entry);
+				if(index == charArray.size()-1){
+					System.out.println("Cannot move Character backward: Last character in list");
+					return;
+				}
+				for(Character loadedChar : charArray){
+					charPanel.remove(loadedChar.panel);
+				}
+				Collections.swap(charArray, index, index+1);
+				System.out.println("Old Index: "+index+"\tNew Index: " + charArray.indexOf(entry));
+				for(Character loadedChar : charArray){
+					addCharacterPanel(loadedChar);
+				}
+				mainWindow.repaint();
+				return;
+			}else if(ae.getSource() == entry.next){
+				int index = charArray.indexOf(entry);
+				if(index == 0){
+					System.out.println("Cannot move Character forward: First character in list");
+					return;
+				}
+				for(Character loadedChar : charArray){
+					charPanel.remove(loadedChar.panel);
+				}
+				Collections.swap(charArray, index, index-1);
+				for(Character loadedChar : charArray){
+					addCharacterPanel(loadedChar);
+				}
+				mainWindow.repaint();
+				return;
+			}
+		}
 		if(ae.getSource() == newChar){
 			buildAddCharWindow();
 			charWindow.setVisible(true);
@@ -93,27 +129,29 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 			charPasser = null;
 			saveCharacters();
 		}else if(ae.getSource() == comRButton){
-			charPanel = new JPanel();
-			charPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-			charPanel.setBackground(Color.WHITE);
-			mainWindow.getContentPane().add(charPanel,"Center");
+			for(Character loadedChar : charArray){
+				charPanel.remove(loadedChar.panel);
+			}
+			//charPanel = new JPanel();
+			//charPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+			//charPanel.setBackground(Color.WHITE);
+			//mainWindow.getContentPane().add(charPanel,"Center");
 			
 			for(Character loadedChar : charArray){
 				createCombatCharacterPanel(loadedChar);
 				addCharacterPanel(loadedChar);
 			}
-			mainWindow.setVisible(true);
+			mainWindow.repaint();
 		}else if(ae.getSource() == socRButton){
-			charPanel = new JPanel();
-			charPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-			charPanel.setBackground(Color.WHITE);
-			mainWindow.getContentPane().add(charPanel,"Center");
+			for(Character loadedChar : charArray){
+				charPanel.remove(loadedChar.panel);
+			}
 			
 			for(Character loadedChar : charArray){
 				createSocialCharacterPanel(loadedChar);
 				addCharacterPanel(loadedChar);
 			}
-			mainWindow.setVisible(true);
+			mainWindow.repaint();
 		}else{
 			String charName;
 			for (JMenuItem entry : charTempItems){
@@ -126,6 +164,24 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 						}
 					}
 				}
+			}
+		}
+	}
+	
+	private void findPCS(){
+		pcList = new ArrayList<Character>();
+		for(Character entry : charArray){
+			if(entry.getPC()){
+				pcList.add(entry);
+			}
+		}
+	}
+	
+	private void findNPCS(){
+		pcList = new ArrayList<Character>();
+		for(Character entry : charArray){
+			if(!entry.getPC()){
+				npcList.add(entry);
 			}
 		}
 	}
@@ -364,7 +420,7 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	private void saveTemplates() {
 		System.out.println("\nSaving Templates");
 		try{
-			ObjectOutputStream saveOOS = new ObjectOutputStream(new FileOutputStream("templatess.ser"));
+			ObjectOutputStream saveOOS = new ObjectOutputStream(new FileOutputStream("templates.ser"));
 			saveOOS.writeObject(templateArray);
 			saveOOS.close();
 			System.out.println("Templates saved");
@@ -419,15 +475,21 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		if(newPanel.getMouseListeners().length == 0)
 			newPanel.addMouseListener(this);
 		
-		newPanel.setLayout(new GridBagLayout());
-		newPanel.add(new JLabel(newChar.getName()),c);
-		c.gridy++;
+		JButton next = new JButton("<");
+		next.addActionListener(this);
+		newChar.next = next;
+		JButton back = new JButton(">");
+		back.addActionListener(this);
+		newChar.back = back;
 		
+		newPanel.setLayout(new GridBagLayout());
 		c.anchor = GridBagConstraints.FIRST_LINE_START;
-		newPanel.add(new JLabel("Refresh:  "),c);
-		c.gridx++;
-		newPanel.add(new JLabel(newChar.getRefresh().toString()),c);
 		c.gridx = 0;
+		c.gridy = 0;
+		newPanel.add(new JLabel(newChar.getName()),c);
+		c.gridx=3;
+		newPanel.add(new JCheckBox(),c);
+		c.gridx=0;
 		c.gridy++;
 		
 		ArrayList<String> attackSkills = newChar.getAttackSkills();
@@ -437,7 +499,7 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 			c.gridx++;
 			newPanel.add(new JLabel(newChar.getSkill(skill.toUpperCase()).toString()),c);
 			c.gridx++;
-			newPanel.add(new JLabel("  "),c);
+			newPanel.add(new JLabel("   "),c);
 			c.gridx++;
 			newPanel.add(new JTextField(2),c);
 			c.gridx=0;
@@ -451,12 +513,18 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 			c.gridx++;
 			newPanel.add(new JLabel(newChar.getSkill(skill.toUpperCase()).toString()),c);
 			c.gridx++;
-			newPanel.add(new JLabel("  "),c);
+			newPanel.add(new JLabel("   "),c);
 			c.gridx++;
 			newPanel.add(new JTextField(2),c);
 			c.gridx=0;
 			c.gridy++;
 		}
+		
+		newPanel.add(next,c);
+		c.gridx=3;
+		c.weightx = 1;
+		c.weighty = 1;
+		newPanel.add(back,c);
 		
 		newChar.panel = newPanel;
 		System.out.println("Combat Panel Built...");
@@ -471,16 +539,24 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		if(newPanel.getMouseListeners().length == 0)
 			newPanel.addMouseListener(this);
 		
+		JButton next = new JButton("<");
+		next.addActionListener(this);
+		newChar.next = next;
+		JButton back = new JButton(">");
+		back.addActionListener(this);
+		newChar.back = back;
+		
 		newPanel.setLayout(new GridBagLayout());
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		c.gridx = 0;
+		c.gridy = 0;
 		newPanel.add(new JLabel(newChar.getName()),c);
+		c.gridx=3;
+		newPanel.add(new JCheckBox(),c);
+		c.gridx=0;
 		c.gridy++;
 		
 		c.anchor = GridBagConstraints.FIRST_LINE_START;
-		newPanel.add(new JLabel("Refresh:  "),c);
-		c.gridx++;
-		newPanel.add(new JLabel(newChar.getRefresh().toString()),c);
-		c.gridx = 0;
-		c.gridy++;
 		
 		ArrayList<String> socialSkills = newChar.getSocialSkills();
 		
@@ -496,6 +572,12 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 			c.gridy++;
 		}
 
+		newPanel.add(next,c);
+		c.gridx=3;
+		c.weightx = 1;
+		c.weighty = 1;
+		newPanel.add(back,c);
+		
 		newChar.panel = newPanel;
 	}
 	
@@ -1351,16 +1433,38 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		if(newChar.getActionListeners().length == 0){
 			newChar.addActionListener(this);
 		}
+		JPanel modePanel = new JPanel();
+		modePanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		modeGroup.add(comRButton);
-		menuBar.add(comRButton);
+		modePanel.add(comRButton);
 		if(comRButton.getActionListeners().length == 0){
 			comRButton.addActionListener(this);
 		}
 		modeGroup.add(socRButton);
-		menuBar.add(socRButton);
+		modePanel.add(socRButton);
 		if(socRButton.getActionListeners().length == 0){
 			socRButton.addActionListener(this);
 		}
+		JPanel listPanel = new JPanel();
+		listPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		listGroup.add(pcRButton);
+		listPanel.add(pcRButton);
+		if(pcRButton.getActionListeners().length == 0){
+			pcRButton.addActionListener(this);
+		}
+		listGroup.add(npcRButton);
+		listPanel.add(npcRButton);
+		if(npcRButton.getActionListeners().length == 0){
+			npcRButton.addActionListener(this);
+		}
+		listGroup.add(allRButton);
+		listPanel.add(allRButton);
+		if(allRButton.getActionListeners().length == 0){
+			allRButton.addActionListener(this);
+		}
+		
+		menuBar.add(modePanel);
+		menuBar.add(listPanel);
 		mainWindow.setJMenuBar(menuBar);
 		
 		//Setting up rightPanel
