@@ -34,7 +34,6 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	/*
 	 * Class Variables
 	 */
-	private ArrayList<Character> charArray;
 	private ArrayList<Character> templateArray;
 	private ArrayList<Character> pcList;
 	private ArrayList<Character> npcList;
@@ -67,34 +66,56 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 
 	@Override
 	public void actionPerformed(ActionEvent ae) {
-		for(Character entry : charArray){
+		ArrayList<Character> charList = new ArrayList<Character>();
+		charList.addAll(pcList);
+		charList.addAll(npcList);
+		for(Character entry : charList){
 			if(ae.getSource() == entry.back){
-				int index = charArray.indexOf(entry);
-				if(index == charArray.size()-1){
+				ArrayList<Character> list;
+				JPanel panel;
+				if(entry.getPC()){
+					list = pcList;
+					panel = pcPanel;
+				}else{
+					list = npcList;
+					panel = npcPanel;
+				}
+				
+				int index = list.indexOf(entry);
+				if(index == list.size()-1){
 					System.out.println("Cannot move Character backward: Last character in list");
 					return;
 				}
-				for(Character loadedChar : charArray){
-					charPanel.remove(loadedChar.panel);
+				for(Character loadedChar : list){
+					panel.remove(loadedChar.panel);
 				}
-				Collections.swap(charArray, index, index+1);
-				System.out.println("Old Index: "+index+"\tNew Index: " + charArray.indexOf(entry));
-				for(Character loadedChar : charArray){
+				Collections.swap(list, index, index+1);
+				System.out.println("Old Index: "+index+"\tNew Index: " + list.indexOf(entry));
+				for(Character loadedChar : list){
 					addCharacterPanel(loadedChar);
 				}
 				mainWindow.repaint();
 				return;
 			}else if(ae.getSource() == entry.next){
-				int index = charArray.indexOf(entry);
+				ArrayList<Character> list;
+				JPanel panel;
+				if(entry.getPC()){
+					list = pcList;
+					panel = pcPanel;
+				}else{
+					list = npcList;
+					panel = npcPanel;
+				}
+				int index = list.indexOf(entry);
 				if(index == 0){
 					System.out.println("Cannot move Character forward: First character in list");
 					return;
 				}
-				for(Character loadedChar : charArray){
-					charPanel.remove(loadedChar.panel);
+				for(Character loadedChar : list){
+					panel.remove(loadedChar.panel);
 				}
-				Collections.swap(charArray, index, index-1);
-				for(Character loadedChar : charArray){
+				Collections.swap(list, index, index-1);
+				for(Character loadedChar : list){
 					addCharacterPanel(loadedChar);
 				}
 				mainWindow.repaint();
@@ -125,29 +146,43 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		}else if(ae.getSource() == deleteChar){
 			delCharacterPanel(charPasser);
 			charWindow.setVisible(false);
-			charArray.remove(charPasser);
+			if(charPasser.getPC()){
+				pcList.remove(charPasser);
+			}else{
+				npcList.remove(charPasser);
+			}
 			charPasser = null;
 			saveCharacters();
 		}else if(ae.getSource() == comRButton){
-			for(Character loadedChar : charArray){
-				charPanel.remove(loadedChar.panel);
+			for(Character loadedChar : pcList){
+				pcPanel.remove(loadedChar.panel);
 			}
-			//charPanel = new JPanel();
-			//charPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-			//charPanel.setBackground(Color.WHITE);
-			//mainWindow.getContentPane().add(charPanel,"Center");
+			for(Character loadedChar : npcList){
+				npcPanel.remove(loadedChar.panel);
+			}
 			
-			for(Character loadedChar : charArray){
+			for(Character loadedChar : pcList){
+				createCombatCharacterPanel(loadedChar);
+				addCharacterPanel(loadedChar);
+			}
+			for(Character loadedChar : npcList){
 				createCombatCharacterPanel(loadedChar);
 				addCharacterPanel(loadedChar);
 			}
 			mainWindow.repaint();
 		}else if(ae.getSource() == socRButton){
-			for(Character loadedChar : charArray){
-				charPanel.remove(loadedChar.panel);
+			for(Character loadedChar : pcList){
+				pcPanel.remove(loadedChar.panel);
+			}
+			for(Character loadedChar : npcList){
+				npcPanel.remove(loadedChar.panel);
 			}
 			
-			for(Character loadedChar : charArray){
+			for(Character loadedChar : pcList){
+				createSocialCharacterPanel(loadedChar);
+				addCharacterPanel(loadedChar);
+			}
+			for(Character loadedChar : npcList){
 				createSocialCharacterPanel(loadedChar);
 				addCharacterPanel(loadedChar);
 			}
@@ -168,18 +203,20 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		}
 	}
 	
-	private void findPCS(){
+	private void findPCS(ArrayList<Character> list){
+		System.out.println("Finding PCs");
 		pcList = new ArrayList<Character>();
-		for(Character entry : charArray){
+		for(Character entry : list){
 			if(entry.getPC()){
 				pcList.add(entry);
 			}
 		}
 	}
 	
-	private void findNPCS(){
-		pcList = new ArrayList<Character>();
-		for(Character entry : charArray){
+	private void findNPCS(ArrayList<Character> list){
+		System.out.println("Finding NPCs");
+		npcList = new ArrayList<Character>();
+		for(Character entry : list){
 			if(!entry.getPC()){
 				npcList.add(entry);
 			}
@@ -250,7 +287,11 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		
 		newChar.panel = new JPanel();
 		
-		charArray.add(newChar);
+		if(newChar.getPC()){
+			pcList.add(newChar);
+		}else{
+			npcList.add(newChar);
+		}
 		createCombatCharacterPanel(newChar);
 		addCharacterPanel(newChar);
 		saveCharacters();
@@ -322,20 +363,25 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		
 		
 		System.out.println("nArchery: " + newChar.getSkill("ARCHERY"));
+		int index = templateArray.size();
 		for(Character entry : templateArray){
 			if(entry.getName().equals(newChar.getName())){
-				entry = newChar;
-				System.out.println("Archery: " + entry.getSkill("ARCHERY"));
-				saveTemplates();
-				return;
+				index = templateArray.indexOf(entry);
 			}
 		}
 		
-		templateArray.add(newChar);
+		if(index == templateArray.size()){
+			templateArray.add(newChar);
+		}else{
+			templateArray.set(index, newChar);
+		}
+		
+		
 		saveTemplates();
 	}
 
 	private void captureCharacter(Character newChar) {
+		ArrayList<Character> charArray = (newChar.getPC())?pcList:npcList;
 		charArray.remove(newChar);
 		
 		//Set General Info
@@ -399,6 +445,8 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		
 		newChar.panel = new JPanel();
 		
+		charArray = (newChar.getPC())?pcList:npcList;
+		
 		charArray.add(newChar);
 		createCombatCharacterPanel(newChar);
 		addCharacterPanel(newChar);
@@ -408,6 +456,9 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	private void saveCharacters() {
 		System.out.println("\nSaving Characters");
 		try{
+			ArrayList<Character> charArray = new ArrayList<Character>();
+			charArray.addAll(pcList);
+			charArray.addAll(npcList);
 			ObjectOutputStream saveOOS = new ObjectOutputStream(new FileOutputStream("characters.ser"));
 			saveOOS.writeObject(charArray);
 			saveOOS.close();
@@ -434,18 +485,17 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		try{
 			ObjectInputStream OIS = new ObjectInputStream(new FileInputStream("characters.ser"));
 			ArrayList<Character> loadedChars = (ArrayList<Character>)OIS.readObject();
-			charArray = new ArrayList<Character>();
-			for(Character loadedChar : loadedChars){
-				charArray.add(loadedChar);
-			}
 			OIS.close();
-			if(charArray.size() == 0){
+			if(loadedChars.size() == 0){
 				throw new IOException();
 			}
+			findPCS(loadedChars);
+			findNPCS(loadedChars);
 		}catch (Exception e){
 			System.out.println("Problem loading characters.ser: " + e);
 			System.out.println("Generating new list");
-			charArray = new ArrayList<Character>();
+			pcList = new ArrayList<Character>();
+			npcList = new ArrayList<Character>();
 		}
 	}
 	
@@ -583,7 +633,11 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	
 	private void addCharacterPanel(Character newChar){
 		System.out.println("\nAdding character panel for " + newChar.getName());
-		charPanel.add(newChar.panel);
+		if(newChar.getPC()){
+			pcPanel.add(newChar.panel);
+		}else{
+			npcPanel.add(newChar.panel);
+		}
 
 		if(newChar.panel.getMouseListeners().length == 0)
 			newChar.panel.addMouseListener(this);
@@ -593,7 +647,11 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	}
 	
 	private void delCharacterPanel(Character delChar){
-		charPanel.remove(delChar.panel);
+		if(delChar.getPC()){
+			pcPanel.remove(delChar.panel);
+		}else{
+			npcPanel.remove(delChar.panel);
+		}
 		mainWindow.repaint();
 	}
 	
@@ -1424,7 +1482,8 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		//Setting the border for the different areas
-		charPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		pcPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		npcPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		southPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 		rightPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
 	
@@ -1445,26 +1504,8 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		if(socRButton.getActionListeners().length == 0){
 			socRButton.addActionListener(this);
 		}
-		JPanel listPanel = new JPanel();
-		listPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-		listGroup.add(pcRButton);
-		listPanel.add(pcRButton);
-		if(pcRButton.getActionListeners().length == 0){
-			pcRButton.addActionListener(this);
-		}
-		listGroup.add(npcRButton);
-		listPanel.add(npcRButton);
-		if(npcRButton.getActionListeners().length == 0){
-			npcRButton.addActionListener(this);
-		}
-		listGroup.add(allRButton);
-		listPanel.add(allRButton);
-		if(allRButton.getActionListeners().length == 0){
-			allRButton.addActionListener(this);
-		}
 		
 		menuBar.add(modePanel);
-		menuBar.add(listPanel);
 		mainWindow.setJMenuBar(menuBar);
 		
 		//Setting up rightPanel
@@ -1485,22 +1526,38 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		rightPanel.add(adjectives);
 		mainWindow.getContentPane().add(rightPanel, "East");
 		
-		//Setting up charPanel
-		charPanel.setBackground(Color.WHITE);
+		//Setting charPanel
+		JPanel charPanel = new JPanel(new GridLayout(2,1));
+		charPanel.setBackground(Color.GRAY);
+		charPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		
+		pcPanel.setBackground(Color.WHITE);
+		npcPanel.setBackground(Color.WHITE);
+		charPanel.add(pcPanel);
+		charPanel.add(npcPanel);
 		mainWindow.getContentPane().add(charPanel,"Center");
+		
+		
+		
+		System.out.println("Building GUI...");
+		System.out.println("Loading PCS");
+		for(Character loadedChar : pcList){
+			createCombatCharacterPanel(loadedChar);
+			addCharacterPanel(loadedChar);
+		}
+		System.out.println("Loaded PCS");
+		for(Character loadedNPC : npcList){
+			createCombatCharacterPanel(loadedNPC);
+			addCharacterPanel(loadedNPC);
+		}
+		System.out.println("Loaded NPCS");
+
+		System.out.println("GUI Built...");
 		
 		//Set size of window and display
 		mainWindow.setSize(800,800);
 		mainWindow.setExtendedState(Frame.MAXIMIZED_BOTH);
 		mainWindow.setVisible(true);
-		
-		System.out.println("Building GUI...");
-		for(Character loadedChar : charArray){
-			createCombatCharacterPanel(loadedChar);
-			addCharacterPanel(loadedChar);
-		}
-
-		System.out.println("GUI Built...");
 	}
 	
 	private void readSkills(){
@@ -1517,13 +1574,23 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 	@Override
 	public void mouseClicked(MouseEvent me) {
 		JPanel source = (JPanel) me.getSource();
-		Character charSource = new Character();
-		for(Character entry : charArray){
+		Character charSource = null;
+		for(Character entry : npcList){
 			if(source.equals(entry.panel)){
 				charSource = entry;
 			}
 		}
-		buildViewCharWindow(charSource);
+		for(Character entry : pcList){
+			if(source.equals(entry.panel)){
+				charSource = entry;
+			}
+		}
+		if(charSource == null){
+			System.out.println("Character not found");
+			return;
+		}else{
+			buildViewCharWindow(charSource);
+		}
 	}
 
 	@Override

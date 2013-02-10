@@ -23,13 +23,14 @@ abstract public class GUIElem {
 	 * GUI ELEMENTS for mainWindow
 	 */
 	protected JFrame mainWindow = new JFrame();
-	protected JPanel charPanel = new JPanel();
+	protected JPanel pcPanel = new JPanel();
+	protected JPanel npcPanel = new JPanel();
 	protected JPanel southPanel = new JPanel();
 	protected JPanel rightPanel = new JPanel();
 	protected JMenuBar menuBar = new JMenuBar();
 	
 	//menuBar items
-	protected JButton newChar = new JButton("+Char");
+	protected JButton newChar = new JButton("Char+");
 	protected JMenu testMenu = new JMenu("File");
 	protected JMenuItem testMenuItem = new JMenuItem("Test");
 	
