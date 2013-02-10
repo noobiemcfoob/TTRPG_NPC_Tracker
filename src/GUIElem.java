@@ -2,6 +2,7 @@ import javax.swing.*;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 
@@ -69,12 +70,12 @@ abstract public class GUIElem {
 	protected JScrollPane char_westScroll;
 	
 	//northPanel items
-	protected JTextField char_nameField = new JTextField(25);
-	protected JTextField char_allyField = new JTextField(25);
-	protected JTextField char_skillCapField = new JTextField(3);
-	protected JTextField char_skillPointsField = new JTextField(3);
-	protected JTextField char_refreshField = new JTextField(3);
-	protected JTextField char_conceptField = new JTextField(25);
+	protected JTextField char_nameField = new JTextField("Name",25);
+	protected JTextField char_allyField = new JTextField("None",25);
+	protected JTextField char_skillCapField = new JTextField("5",3);
+	protected JTextField char_skillPointsField = new JTextField("30",3);
+	protected JTextField char_refreshField = new JTextField("7",3);
+	protected JTextField char_conceptField = new JTextField("None",25);
 	protected ButtonGroup char_typeGroup = new ButtonGroup();
 	protected JRadioButton char_pcRButton = new JRadioButton("PC");
 	protected JRadioButton char_npcRButton = new JRadioButton("NPC");
@@ -83,13 +84,24 @@ abstract public class GUIElem {
 	//westPanel items
 	protected Integer char_stuntGridY = 0;
 	protected JButton char_stuntAdd = new JButton("Add Additional Stunt");
-	protected JTextArea char_inventory = new JTextArea(10,13);
-	protected JTextArea char_notes = new JTextArea(10,13);
+	protected JPanel char_conPanel = new JPanel();
+	protected ArrayList<JTextField> consequences = new ArrayList<JTextField>(4);
+	protected JPanel char_stressPanel = new JPanel();
+	protected ArrayList<JTextField> stresses = new ArrayList<JTextField>();
+	static protected ArrayList<String> stressNames = new ArrayList<String>(Arrays.asList(
+			"PHY",
+			"MEN",
+			"SOC",
+			"ARM",
+			"MSC"
+		));
 	
 	//centerPanel items
 	protected JPanel char_aspectPanel;
 	protected Integer char_aspectGridY = 0;
 	protected JButton char_aspectAdd = new JButton("Add Additional Aspect");
+	protected JTextArea char_inventory = new JTextArea(10,13);
+	protected JTextArea char_notes = new JTextArea(10,13);
 	
 	//skillPanel items
 	protected HashMap<String, JTextField> char_SkillFields;

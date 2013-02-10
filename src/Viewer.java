@@ -254,6 +254,42 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		}
 		newChar.setRevisit(char_revisitBox.isSelected());
 
+		//Capture Stress Tracks
+		for(int i = 0; i < 5; i++){
+			System.out.println("I: "+i);
+			System.out.println(stresses.get(i).getText());
+			switch(i){
+				case 0:
+					newChar.setMaxPhyStress(Integer.parseInt(stresses.get(i).getText())); 
+					break;
+				case 1: 
+					newChar.setMaxMenStress(Integer.parseInt(stresses.get(i).getText())); 
+					break;
+				case 2: 
+					newChar.setMaxSocStress(Integer.parseInt(stresses.get(i).getText())); 
+					break;
+				case 3: 
+					newChar.setMaxArmStress(Integer.parseInt(stresses.get(i).getText())); 
+					break;
+				case 4: 
+					newChar.setMaxMiscStress(Integer.parseInt(stresses.get(i).getText())); 
+					break;
+			}
+		}
+		
+		//Capture Consequences
+		for(int i = 0; i < 4; i++){
+			switch(i){
+				case 0: 
+					newChar.addConsequence((i*2+2)*-1, consequences.get(i).getText());
+				case 1: 
+					newChar.addConsequence((i*2+2)*-1, consequences.get(i).getText());
+				case 2: 
+					newChar.addConsequence((i*2+2)*-1, consequences.get(i).getText());
+				case 3: 
+					newChar.addConsequence((i*2+2)*-1, consequences.get(i).getText());
+			}
+		}
 		
 		//Set Stunts
 		for(int i = 0;i<char_stuntManager.size();i+=2){
@@ -411,6 +447,42 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		}
 		newChar.setRevisit(char_revisitBox.isSelected());
 
+		//Capture Stress Tracks
+		for(int i = 0; i < 5; i++){
+			System.out.println("I: "+i);
+			System.out.println(stresses.get(i).getText());
+			switch(i){
+				case 0:
+					newChar.setMaxPhyStress(Integer.parseInt(stresses.get(i).getText())); 
+					break;
+				case 1: 
+					newChar.setMaxMenStress(Integer.parseInt(stresses.get(i).getText())); 
+					break;
+				case 2: 
+					newChar.setMaxSocStress(Integer.parseInt(stresses.get(i).getText())); 
+					break;
+				case 3: 
+					newChar.setMaxArmStress(Integer.parseInt(stresses.get(i).getText())); 
+					break;
+				case 4: 
+					newChar.setMaxMiscStress(Integer.parseInt(stresses.get(i).getText())); 
+					break;
+			}
+		}
+		
+		//Capture Consequences
+		for(int i = 0; i < 4; i++){
+			switch(i){
+				case 0: 
+					newChar.addConsequence((i*2+2)*-1, consequences.get(i).getText());
+				case 1: 
+					newChar.addConsequence((i*2+2)*-1, consequences.get(i).getText());
+				case 2: 
+					newChar.addConsequence((i*2+2)*-1, consequences.get(i).getText());
+				case 3: 
+					newChar.addConsequence((i*2+2)*-1, consequences.get(i).getText());
+			}
+		}
 		
 		//Set Stunts
 		for(int i = 0;i<char_stuntManager.size();i+=2){
@@ -673,12 +745,12 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		char_westScroll = new JScrollPane(char_westPanel);
 		
 		//NorthPanel items
-		char_nameField = new JTextField(25);
-		char_allyField = new JTextField(25);
-		char_skillCapField = new JTextField(3);
-		char_skillPointsField = new JTextField(3);
-		char_refreshField = new JTextField(3);
-		char_conceptField = new JTextField(25);
+		char_nameField = new JTextField("Name",25);
+		char_allyField = new JTextField("None",25);
+		char_skillCapField = new JTextField("5",3);
+		char_skillPointsField = new JTextField("30",3);
+		char_refreshField = new JTextField("7",3);
+		char_conceptField = new JTextField("None",25);
 		char_typeGroup = new ButtonGroup();
 		char_pcRButton = new JRadioButton("PC");
 		char_npcRButton = new JRadioButton("NPC");
@@ -723,7 +795,7 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		
 		char_SkillFields = new HashMap<String, JTextField>();
 		for(String skill : allSkills){
-			char_SkillFields.put(skill, new JTextField(3));
+			char_SkillFields.put(skill, new JTextField("0",3));
 			
 			tempPanel = new JPanel();
 			
@@ -880,6 +952,58 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		/*
 		 * Build West Panel
 		 */
+		//Build Stress Panel
+		char_stressPanel = new JPanel(new GridBagLayout());
+		c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		c.weightx = 1;
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		char_stressPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_stressPanel.add(new JLabel("Stresses"),c);
+		c.gridx++;
+		c.gridy++;
+		stresses = new ArrayList<JTextField>();
+		for(String entry : stressNames){
+			c.weighty = 1;
+			JPanel panel = new JPanel(new GridLayout(2,1));
+			JTextField newStress = new JTextField("2",1);
+			stresses.add(newStress);
+			panel.add(new JLabel(entry));
+			panel.add(new JTextField("2",1));
+			char_stressPanel.add(panel,c);
+			c.gridx++;
+		}
+		char_westPanel.add(char_stressPanel);
+		
+		//Build Consequences Panel
+		char_conPanel = new JPanel(new GridBagLayout());
+		c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		char_conPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_conPanel.add(new JLabel("Consequences"),c);
+		c.gridy++;
+		consequences = new ArrayList<JTextField>();
+		for(int i = 0; i<4;i++){
+			if(i==3){
+				c.weighty = 1;
+			}
+			char_conPanel.add(new JLabel("-"+(i*2+2)),c);
+			c.gridx++;
+			char_conPanel.add(new JCheckBox(),c);
+			c.gridx++;
+			c.gridwidth = 3;
+			JTextField con = new JTextField(" ",20);
+			consequences.add(con);
+			char_conPanel.add(con,c);
+			c.gridx = 0;
+			c.gridwidth = 1;
+			c.gridy++;
+		}
+		char_westPanel.add(char_conPanel);
+		
 		//Build stuntPanel
 		char_stuntManager = new ArrayList<JTextField>();
 		char_stuntPanel.setLayout(new GridBagLayout());
@@ -1144,6 +1268,88 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		/*
 		 * Build West Panel
 		 */
+		//Build Stress Panel
+		char_stressPanel = new JPanel(new GridBagLayout());
+		c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		c.weightx = 1;
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		char_stressPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_stressPanel.add(new JLabel("Stresses"),c);
+		c.gridx++;
+		c.gridy++;
+		stresses = new ArrayList<JTextField>();
+		for(int i=0; i<5; i++){
+			c.weighty = 1;
+			JPanel panel = new JPanel(new GridBagLayout());
+			GridBagConstraints c3 = new GridBagConstraints();
+			c3.gridx = 0;
+			c3.gridy = 0;
+			JTextField newStress = null;
+			Integer max = 0;
+			switch(i){
+				case 0:
+					max = viewChar.getMaxPhyStress();
+					panel.add(new JLabel("PHY"),c3);
+					break;
+				case 1:
+					max = viewChar.getMaxMenStress();
+					panel.add(new JLabel("MEN"),c3);
+					break;
+				case 2:
+					max = viewChar.getMaxSocStress();
+					panel.add(new JLabel("SOC"),c3);
+					break;
+				case 3:
+					max = viewChar.getMaxArmStress();
+					panel.add(new JLabel("ARM"),c3);
+					break;
+				case 4:
+					max = viewChar.getMaxMiscStress();
+					panel.add(new JLabel("MSC"),c3);
+					break;
+			}
+			newStress = new JTextField(max.toString(),1);
+			stresses.add(newStress);
+			c3.gridy++;
+			panel.add(newStress,c3);
+			c3.gridy++;
+			for(int j = 0; j<max; j++){
+				panel.add(new JCheckBox(),c3);
+				c3.gridy++;
+			}
+			char_stressPanel.add(panel,c);
+			c.gridx++;
+		}
+		char_westPanel.add(char_stressPanel);
+		
+		//Build Consequences Panel
+		char_conPanel = new JPanel(new GridBagLayout());
+		c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		char_conPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+		char_conPanel.add(new JLabel("Consequences"),c);
+		c.gridy++;
+		consequences = new ArrayList<JTextField>();
+		for(int i = 0; i<4;i++){
+			if(i==3){
+				c.weighty = 1;
+			}
+			char_conPanel.add(new JLabel("-"+(i*2+2)),c);
+			c.gridx++;
+			c.gridwidth = 3;
+			JTextField con = new JTextField(viewChar.getConsequence(i),20);
+			consequences.add(con);
+			char_conPanel.add(con,c);
+			c.gridx = 0;
+			c.gridwidth = 1;
+			c.gridy++;
+		}
+		char_westPanel.add(char_conPanel);
+		
 		//Build stuntPanel
 		char_stuntManager = new ArrayList<JTextField>();
 		char_stuntPanel.setLayout(new GridBagLayout());

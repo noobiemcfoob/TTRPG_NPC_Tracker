@@ -47,17 +47,23 @@ public class Character implements Serializable{
 	));
 	
 	//Health Related Variables
-	private ArrayList<Boolean> physicalStress;
+	private ArrayList<Boolean> physicalStress = new ArrayList<Boolean>();
 	private Integer maxPhyStress = 0;
-	private ArrayList<Boolean> mentalStress;
+	private ArrayList<Boolean> mentalStress = new ArrayList<Boolean>();
 	private Integer maxMenStress = 0;
-	private ArrayList<Boolean> socialStress;
+	private ArrayList<Boolean> socialStress = new ArrayList<Boolean>();
 	private Integer maxSocStress = 0;
-	private ArrayList<Boolean> armorStress;
-	private ArrayList<Boolean> miscStress;
-	private Integer maxMiscStress;
+	private ArrayList<Boolean> armorStress = new ArrayList<Boolean>();
+	private Integer maxArmStress = 0;
+	private ArrayList<Boolean> miscStress = new ArrayList<Boolean>();
+	private Integer maxMiscStress = 0;
 	
-	private ArrayList<String> consequences;
+	private ArrayList<String> consequences = new ArrayList<String>(Arrays.asList(
+			" ",
+			" ",
+			" ",
+			" "
+		));
 	
 	//Hash table of all skills for a character. "Skill Name" -> Skill Value
 	private HashMap<String,Integer> skills = new HashMap<String,Integer>();
@@ -298,14 +304,18 @@ public class Character implements Serializable{
 		switch(level){
 			case -2: 	consequences.set(0, consequence);
 						return true;
-			case -4: 	consequences.set(0, consequence); 
+			case -4: 	consequences.set(1, consequence); 
 						return true;
-			case -6: 	consequences.set(0, consequence);
+			case -6: 	consequences.set(2, consequence);
 						return true; 
-			case -8: 	consequences.set(0, consequence);
+			case -8: 	consequences.set(3, consequence);
 						return true;
 			default: return false;
 		}
+	}
+	
+	public String getConsequence(Integer index){
+		return consequences.get(index);
 	}
 	
 	public ArrayList<String> getConsequences(){
@@ -317,19 +327,44 @@ public class Character implements Serializable{
 		mentalStress.ensureCapacity(maxStress);
 	}
 	
-	public void setPhyMenStress(Integer maxStress){
+	public void setMaxPhyStress(Integer maxStress){
 		maxPhyStress = maxStress;
 		physicalStress.ensureCapacity(maxStress);
 	}
 	
-	public void setSocMenStress(Integer maxStress){
+	public void setMaxSocStress(Integer maxStress){
 		maxSocStress = maxStress;
 		socialStress.ensureCapacity(maxStress);
 	}
 	
-	public void setMiscMenStress(Integer maxStress){
+	public void setMaxMiscStress(Integer maxStress){
 		maxMiscStress = maxStress;
 		miscStress.ensureCapacity(maxStress);
+	}
+	
+	public void setMaxArmStress(Integer maxStress){
+		maxArmStress = maxStress;
+		armorStress.ensureCapacity(maxStress);
+	}
+	
+	public ArrayList<Boolean> getPhyStress(){
+		return physicalStress;
+	}
+	
+	public ArrayList<Boolean> getMenStress(){
+		return mentalStress;
+	}
+	
+	public ArrayList<Boolean> getSocStress(){
+		return socialStress;
+	}
+	
+	public ArrayList<Boolean> getArmStress(){
+		return armorStress;
+	}
+	
+	public ArrayList<Boolean> getMscStress(){
+		return miscStress;
 	}
 	
 	public Integer getMaxMenStress(){
@@ -346,6 +381,10 @@ public class Character implements Serializable{
 	
 	public Integer getMaxMiscStress(){
 		return maxMiscStress;
+	}
+	
+	public Integer getMaxArmStress(){
+		return maxArmStress;
 	}
 	
 	public void setMentalStress(Integer level){
