@@ -258,21 +258,37 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		for(int i = 0; i < 5; i++){
 			System.out.println("I: "+i);
 			System.out.println(stresses.get(i).getText());
+			String stress = stresses.get(i).getText();
+			
+			if(null == stress){
+				stress = "0";
+			}
+			
+			ArrayList<Boolean> filledBubbles = new ArrayList<Boolean>();
+			for(int j = 0; j<Integer.parseInt(stress); j++){
+				filledBubbles.add(false);
+			}
+			
 			switch(i){
 				case 0:
-					newChar.setMaxPhyStress(Integer.parseInt(stresses.get(i).getText())); 
+					newChar.setMaxPhyStress(Integer.parseInt(stress));
+					newChar.setPhyStress(filledBubbles);
 					break;
 				case 1: 
-					newChar.setMaxMenStress(Integer.parseInt(stresses.get(i).getText())); 
+					newChar.setMaxMenStress(Integer.parseInt(stress));
+					newChar.setMenStress(filledBubbles);
 					break;
 				case 2: 
-					newChar.setMaxSocStress(Integer.parseInt(stresses.get(i).getText())); 
+					newChar.setMaxSocStress(Integer.parseInt(stress));
+					newChar.setSocStress(filledBubbles);
 					break;
 				case 3: 
-					newChar.setMaxArmStress(Integer.parseInt(stresses.get(i).getText())); 
+					newChar.setMaxArmStress(Integer.parseInt(stress));
+					newChar.setArmStress(filledBubbles);
 					break;
 				case 4: 
-					newChar.setMaxMiscStress(Integer.parseInt(stresses.get(i).getText())); 
+					newChar.setMaxMiscStress(Integer.parseInt(stress)); 
+					newChar.setMscStress(filledBubbles);
 					break;
 			}
 		}
@@ -364,6 +380,92 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		}
 		newChar.setRevisit(char_revisitBox.isSelected());
 
+		//Capture Stress Tracks
+		for(int i = 0; i < 5; i++){
+			System.out.println("I: "+i);
+			System.out.println(stresses.get(i).getText());
+			String stress = stresses.get(i).getText();
+			if(null == stress){
+				switch(i){
+					case 0:
+						newChar.setMaxPhyStress(0); 
+						break;
+					case 1: 
+						newChar.setMaxMenStress(0); 
+						break;
+					case 2: 
+						newChar.setMaxSocStress(0); 
+						break;
+					case 3: 
+						newChar.setMaxArmStress(0); 
+						break;
+					case 4: 
+						newChar.setMaxMiscStress(0); 
+						break;
+				}
+			}else{	//stress has a value
+				switch(i){
+					case 0:
+						newChar.setMaxPhyStress(Integer.parseInt(stress)); 
+						break;
+					case 1: 
+						newChar.setMaxMenStress(Integer.parseInt(stress)); 
+						break;
+					case 2: 
+						newChar.setMaxSocStress(Integer.parseInt(stress)); 
+						break;
+					case 3: 
+						newChar.setMaxArmStress(Integer.parseInt(stress)); 
+						break;
+					case 4: 
+						newChar.setMaxMiscStress(Integer.parseInt(stress)); 
+						break;
+				}
+			}
+		}
+		
+		//Capture Stress Bubbles
+		for(int i = 0; i < 5; i++){
+			ArrayList<Boolean> filledBubbles = new ArrayList<Boolean>();
+			for(JCheckBox stressBubble : stressTracks.get(i)){
+				if(stressBubble.isSelected()){
+					filledBubbles.add(true);
+				}else{
+					filledBubbles.add(false);
+				}
+			}
+			switch(i){
+				case 0:
+					newChar.setPhyStress(filledBubbles);
+					break;
+				case 1: 
+					newChar.setPhyStress(filledBubbles);
+					break;
+				case 2: 
+					newChar.setPhyStress(filledBubbles);
+					break;
+				case 3: 
+					newChar.setPhyStress(filledBubbles);
+					break;
+				case 4: 
+					newChar.setPhyStress(filledBubbles); 
+					break;
+			}
+		}
+		
+		//Capture Consequences
+		for(int i = 0; i < 4; i++){
+			switch(i){
+				case 0: 
+					newChar.addConsequence((i*2+2)*-1, consequences.get(i).getText());
+				case 1: 
+					newChar.addConsequence((i*2+2)*-1, consequences.get(i).getText());
+				case 2: 
+					newChar.addConsequence((i*2+2)*-1, consequences.get(i).getText());
+				case 3: 
+					newChar.addConsequence((i*2+2)*-1, consequences.get(i).getText());
+			}
+		}
 		
 		//Set Stunts
 		for(int i = 0;i<char_stuntManager.size();i+=2){
@@ -449,23 +551,69 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 
 		//Capture Stress Tracks
 		for(int i = 0; i < 5; i++){
-			System.out.println("I: "+i);
-			System.out.println(stresses.get(i).getText());
+			int oldStress = 0;
+			ArrayList<Boolean> filledBubbles = null;
+			switch(i){
+			case 0:
+				oldStress = newChar.getMaxPhyStress();
+				filledBubbles = newChar.getPhyStress();
+				break;
+			case 1:
+				oldStress = newChar.getMaxMenStress();
+				filledBubbles = newChar.getMenStress();
+				break;
+			case 2:
+				oldStress = newChar.getMaxSocStress();
+				filledBubbles = newChar.getSocStress();
+				break;
+			case 3:
+				oldStress = newChar.getMaxArmStress();
+				filledBubbles = newChar.getArmStress();
+				break;
+			case 4:
+				oldStress = newChar.getMaxMiscStress();
+				filledBubbles = newChar.getMscStress();
+				break;
+			}
+			
+			String stress = stresses.get(i).getText();
+			if(null == stress){
+				stress = "0";
+			}
+			
+			//Replace all stress with False if resizing stress track
+			if(Integer.parseInt(stress) != oldStress){
+				filledBubbles = new ArrayList<Boolean>();
+				for(int j = 0; j<Integer.parseInt(stress); j++){
+					filledBubbles.add(false);
+				}
+			}else{
+				filledBubbles = new ArrayList<Boolean>();
+				for(int j = 0; j<Integer.parseInt(stress); j++){
+					filledBubbles.add(stressTracks.get(i).get(j).isSelected());
+				}
+			}
+		
 			switch(i){
 				case 0:
-					newChar.setMaxPhyStress(Integer.parseInt(stresses.get(i).getText())); 
+					newChar.setMaxPhyStress(Integer.parseInt(stress));
+					newChar.setPhyStress(filledBubbles);
 					break;
 				case 1: 
-					newChar.setMaxMenStress(Integer.parseInt(stresses.get(i).getText())); 
+					newChar.setMaxMenStress(Integer.parseInt(stress));
+					newChar.setMenStress(filledBubbles);
 					break;
 				case 2: 
-					newChar.setMaxSocStress(Integer.parseInt(stresses.get(i).getText())); 
+					newChar.setMaxSocStress(Integer.parseInt(stress));
+					newChar.setSocStress(filledBubbles);
 					break;
 				case 3: 
-					newChar.setMaxArmStress(Integer.parseInt(stresses.get(i).getText())); 
+					newChar.setMaxArmStress(Integer.parseInt(stress));
+					newChar.setArmStress(filledBubbles);
 					break;
 				case 4: 
-					newChar.setMaxMiscStress(Integer.parseInt(stresses.get(i).getText())); 
+					newChar.setMaxMiscStress(Integer.parseInt(stress)); 
+					newChar.setMscStress(filledBubbles);
 					break;
 			}
 		}
@@ -1280,6 +1428,7 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 		c.gridx++;
 		c.gridy++;
 		stresses = new ArrayList<JTextField>();
+		stressTracks = new ArrayList<ArrayList<JCheckBox>>();
 		for(int i=0; i<5; i++){
 			c.weighty = 1;
 			JPanel panel = new JPanel(new GridBagLayout());
@@ -1312,11 +1461,33 @@ public class Viewer extends GUIElem implements Runnable, ActionListener, MouseLi
 			}
 			newStress = new JTextField(max.toString(),1);
 			stresses.add(newStress);
+			stressTracks.add(new ArrayList<JCheckBox>());
 			c3.gridy++;
 			panel.add(newStress,c3);
 			c3.gridy++;
+			ArrayList<Boolean> filledBubbles = null;
+			switch(i){
+				case 0: 
+					filledBubbles = viewChar.getPhyStress();
+					break;
+				case 1: 
+					filledBubbles = viewChar.getMenStress();
+					break;
+				case 2: 
+					filledBubbles = viewChar.getSocStress();
+					break;
+				case 3: 
+					filledBubbles = viewChar.getArmStress();
+					break;
+				case 4: 
+					filledBubbles = viewChar.getMscStress();
+					break;
+			}
 			for(int j = 0; j<max; j++){
-				panel.add(new JCheckBox(),c3);
+				JCheckBox stressBubble = new JCheckBox();
+				stressBubble.setSelected(filledBubbles.get(j));
+				stressTracks.get(i).add(stressBubble);
+				panel.add(stressBubble,c3);
 				c3.gridy++;
 			}
 			char_stressPanel.add(panel,c);

@@ -88,6 +88,7 @@ abstract public class GUIElem {
 	protected ArrayList<JTextField> consequences = new ArrayList<JTextField>(4);
 	protected JPanel char_stressPanel = new JPanel();
 	protected ArrayList<JTextField> stresses = new ArrayList<JTextField>();
+	protected ArrayList<ArrayList<JCheckBox>> stressTracks = new ArrayList<ArrayList<JCheckBox>>();
 	static protected ArrayList<String> stressNames = new ArrayList<String>(Arrays.asList(
 			"PHY",
 			"MEN",

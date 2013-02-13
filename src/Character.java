@@ -387,11 +387,23 @@ public class Character implements Serializable{
 		return maxArmStress;
 	}
 	
-	public void setMentalStress(Integer level){
-		if(level > maxMenStress){
-			
-		}else{
-			mentalStress.set(level, true);
-		}
+	public void setPhyStress(ArrayList<Boolean> filledBubbles){
+		physicalStress = filledBubbles;
+	}
+	
+	public void setMenStress(ArrayList<Boolean> filledBubbles){
+		mentalStress = filledBubbles;
+	}
+	
+	public void setSocStress(ArrayList<Boolean> filledBubbles){
+		socialStress = filledBubbles;
+	}
+	
+	public void setArmStress(ArrayList<Boolean> filledBubbles){
+		armorStress = filledBubbles;
+	}
+	
+	public void setMscStress(ArrayList<Boolean> filledBubbles){
+		miscStress = filledBubbles;
 	}
 }
